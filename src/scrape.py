@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import time
 from enum import Enum
 
 import requests
@@ -39,6 +40,7 @@ url_t2_talismans = WIKI_BASE_URL + "/Talismans"
 url_t2_items = WIKI_BASE_URL + "/Items"
 
 url_t2_creaturesandenemies = WIKI_BASE_URL + "/Creatures+and+Enemies"
+url_t2_bosses = WIKI_BASE_URL + "/Bosses"
 
 url_t2_locations = WIKI_BASE_URL + "/Locations"
 
@@ -110,28 +112,44 @@ class Entity:
             correction = re.sub(r"PATCHES BELL BEARING", r"Patches' Bell Bearing", text)
         elif self.name == "Bloodstained Dagger":
             correction = re.sub(r"#gsc\.tab=0", r"", text)
+        elif self.name == "Royal Greatsword":
+            correction = re.sub(r"\/\/Strength", r"Strength", text)
+        elif self.name == "Vulgar Militia Saw":
+            correction = re.sub(r"\+ \[Example farming route\]\(\/file\/Elden\-Ring\/vulgar\_militia\_saw\.png \"Example farming route\"\)", r"", text)
+        elif self.name == "Flowing Curved Sword":
+            correction = re.sub(r" See it on the +\.", r"", text)
+        elif self.name == "Nox Flowing Hammer":
+            correction = re.sub(r"\[\[(Flowing Form) \(Nox Flowing Hammer\)", r"[[\1", text)
+        elif self.name == "Bolt of Gransax":
+            correction = re.sub(r"\[\[(Leyndell Royal Capital) \(Legacy Dungeon\)#[^\]]+\]\]", r"[[\1|\1]]", text)
+        elif self.name == "Torch":
+            #[\'\,\"\/\(\)\+ \.\|\[\]#\*\w\&\n]*
+            correction = re.sub(r" ### Elden Ring Torch Moveset[\'\,\"\/\(\)\+ \.\|\[\]#\*\w\&\n]*", r"", text)
+            #correction = re.sub(r"\n\n", r"\n", correction)
 
         return correction
 
     def format_links(self, md_text):
         md_text_whitespace_fixed = md_text.replace(u'\xa0', ' ').strip() # Remove leading and trailing whitespace, and non-breaking spaces (&nbsp;)
 
-        # Due diligence
-        rx_condense_multispaces = re.sub(r" +", r" ", md_text_whitespace_fixed) # Condense multiple spaces
-
         # Removals
-        rx_hemorrhage = re.sub(r"\[\([0-9]+\)\]\(\/Hemorrhage[^\)]+\)", "", rx_condense_multispaces)
-        map_link_insertion = r"[\1](" + WIKI_BASE_URL + r"/\2)" # Use this string in the below regex to keep external map links
-        # rx_remove_map_links = re.sub(r"\[\[(Elden Ring [M|m]ap[^\)]+|[M|m]ap [lL]ink|Map Coordinates)\]\((\/[I|i]nteractive\+[M|m]ap\?[^\ ]+)( \"[^\[]+\"\)\])", "", rx_hemorrhage) # Fix map links
-        rx_remove_map_links = re.sub(r"\[+([^M|m]*[M|m]ap[^\]]+)\]\((\/[I|i]nteractive\+[M|m]ap\?[^\ ]+)( \"[^\[]+\"\)\]*)", "", rx_hemorrhage) # Fix map links
-        rx_remove_video_links = re.sub(r"\[Video[^\]]+\]\([^\)]+\)", "", rx_remove_map_links)
+        rx_hemorrhage = re.sub(r"\[\([0-9]+\)\]\(\/Hemorrhage[^\)]+\)", "", md_text_whitespace_fixed)
+        rx_remove_video_links = re.sub(r"\[Video[^\]]+\]\([^\)]+\)", "", rx_hemorrhage)
 
         # Reformatting
-        rx_links = re.sub(r"\[([^]]+)\]\(\/([^?\[\]]+) \"Elden Ring ([^\[\]]+)\"\)", r"[[\3|\1]]", rx_remove_video_links) # Reformat links
+        rx_map_links = re.sub(r"[\[]+([^\]]+)\]\((\/[I|i]nteractive\+[M|m]ap\?[^\ ]+) \"([^\"]+)\"\)\]*\.*", r"[\1](\1)", rx_remove_video_links) # Fix map links
+        # Now that all map links are in the same format, remove the generic ones i.e. not those that point toward a specific entity or location ("Elden Ring Map here", "Map Link", etc.)
+        rx_remove_map_links = re.sub(r"\[(Elden Ring Map here|Map Coordinates|Map [Ll]ink|Elden Ring Map( [Ll]ink)*)\]\(\1\)", r"", rx_map_links)
+        rx_links = re.sub(r"\[([^]]+)\]\(\/([^?\[\]]+) \"Elden Ring ([^\[\]]+)\"\)", r"[[\3|\1]]", rx_remove_map_links) # Reformat links
         
-        #rx4 = re.sub(r"\(\/Interactive\+Map[^\)]+\)", "", rx3) # Scrub all map links
+        # Due diligence
+        rx_other_notes = re.sub(r"Other notes and player tips go here\.*", r"", rx_links)
+        rx_unlink_builds = re.sub(r"\[\[Builds#[^\|]+\|([^\]]+)\]\]", r"\1", rx_other_notes)
+        rx_special_weaknesses = re.sub(r"\[\[Special Weaknesses#[^\]]+\|([^\]]+)\]\]", r"\1", rx_unlink_builds)
+        rx_ash_of_war_skill_links = re.sub(r"\[\[Ash of War: ", r"[[", rx_special_weaknesses)
+        rx_condense_multispaces = re.sub(r" +", r" ", rx_ash_of_war_skill_links) # Condense multiple spaces
 
-        corrections_applied = self.perform_targeted_corrections(rx_links)
+        corrections_applied = self.perform_targeted_corrections(rx_condense_multispaces)
 
         return corrections_applied
 
@@ -291,8 +309,9 @@ class Parser:
             
             entity_name = cells[0]
             description = cells[5]
+            #print(f"{entity_name}")
             entities.append(Entity(entity_name, category=EntityType.SKILL, description=description))
-
+        
         return entities
     
     def url_to_entity(url, category=None, force_download_image=False):
@@ -353,6 +372,7 @@ class Parser:
 
         mode = ''
         location_tokens = []
+        drops_tokens = []
         notes_tokens = []
         use_tokens = []
         moveset_tokens = []
@@ -367,6 +387,8 @@ class Parser:
             # This works by dint of the first element always being this string (guaranteed?)
             if '<h3 class="bonfire">where to find' in element_str.lower():
                 mode = 'LOCATION'
+            elif 'Drops</h3>' in element_str.lower():
+                mode = 'DROPS'
             elif 'tips</h3>' in element_str.lower():
                 # print("MODE SET TO NOTES_AND_TIPS")
                 mode = 'NOTES_AND_TIPS'
@@ -374,6 +396,7 @@ class Parser:
                 mode = 'USE'
             elif 'click below for a list of all possible ashes of war that can be applied to' in element_str.lower():
                 mode = 'ASHES_OF_WAR'
+            #'<h3 class="bonfire">Elden Ring Torch Moveset'
             elif '<h3 class="bonfire">moveset' in element_str.lower():
                 mode = 'MOVESET'
 
@@ -382,9 +405,9 @@ class Parser:
             # Append to section list depending on current mode
             if mode == 'LOCATION':
                 location_tokens.append(str(element))
+            if mode == 'DROPS':
+                drops_tokens.append(str(element))
             elif mode == 'NOTES_AND_TIPS':
-                #print(mode)
-                #print(str(element))
                 notes_tokens.append(str(element))
             elif mode == 'USE':
                 use_tokens.append(str(element))
@@ -502,6 +525,7 @@ class EldenBring:
         ]
 
         self.stats = [
+            "Stats", 
             "Vigor", 
             "Mind", 
             "Endurance", 
@@ -511,6 +535,8 @@ class EldenBring:
             "Faith", 
             "Arcane", 
             "Discovery", 
+            "FP", 
+            "Poise", 
         ]
 
         self.status_effects = [
@@ -523,6 +549,14 @@ class EldenBring:
             "Death Blight", 
             "Hemorrhage", 
             "/Hemorrhage", # Erroneously created
+        ]
+
+        self.spell_type = [
+            "Sorceries", 
+            "Incantations", 
+            "Bestial Incantations", 
+            "Cold Sorceries", 
+            "Aberrant Sorceries", 
         ]
 
         self.weapon_type = [
@@ -560,6 +594,12 @@ class EldenBring:
             "Tools", 
         ]
 
+        self.shield_type = [
+            "Small Shields", 
+            "Medium Shields", 
+            "Greatshields", 
+        ]
+
         self.hide_list = [
             "Ashes of War", 
             "Consumables", 
@@ -569,8 +609,10 @@ class EldenBring:
             "Skills", 
             "Smithing Stones", 
             "Somber Smithing Stones", 
-            "Incantations", 
-            "Faith"
+            "Patch Notes", 
+            "Creatures and Enemies", 
+            "New Game Plus", 
+            "Upgrades", 
         ]
         # Create directories if they don't already exist
         if not os.path.exists(CACHE_LOCATION + VAULT_NAME + IMAGE_WRITE_DIRECTORY):
@@ -584,29 +626,40 @@ class EldenBring:
         skill_entities = Parser.get_skill_entities()
 
         log.info(f"Parsing {len(skill_entities)} Skills...")
-
-        for skill in skill_entities:
+        
+        for idx, skill in enumerate(skill_entities):
+            # destination_path = CACHE_LOCATION + VAULT_NAME + 'Skills/'
+            # print(skill.name)
+            # print(destination_path + skill.name + '.md')
+            # print(os.path.isfile(destination_path + skill.name + '.md'))
+            # while ~os.path.isfile(CACHE_LOCATION + VAULT_NAME + 'Skills/' + skill.name + '.md'):
+            log.info(f"Creating {skill.name} [{idx+1} of {len(skill_entities)}]...")
             skill.write_to_file()
+            time.sleep(0.001)
         
     def create_hidden(self, overwrite=True):
-        all_targets = self.classes + self.stats + self.status_effects + self.weapon_type + self.hide_list
+        all_targets = self.classes + self.stats + self.status_effects + \
+                      self.weapon_type + self.shield_type + self.hide_list
         print(all_targets)
         destination_path = CACHE_LOCATION + VAULT_NAME + HIDDEN_WRITE_DIRECTORY
+
+        log.info(f"Creating {len(all_targets)} hidden files...")
 
         for idx, target in enumerate(all_targets):
             # Create a new file if it doesn't exist or overwrite is True
             if overwrite or ~os.path.isfile(destination_path + target):
                 log.info(f"Creating {target} hidden file [{idx+1} of {len(all_targets)}]...")
-                f = open(destination_path + target+'.md', 'w')
+                f = open(destination_path + target + '.md', 'w')
                 f.write(HIDDEN_TAG)
                 f.close()
+                time.sleep(0.001)
 
 def main():
 
     eb = EldenBring()
 
-    eb.create_skills()
-    eb.create_hidden()
+    # eb.create_skills()
+    # eb.create_hidden()
 
     # Create destination directory if it doesn't exist
     # if not os.path.exists(CACHE_LOCATION + VAULT_NAME + IMAGE_WRITE_DIRECTORY):
@@ -643,6 +696,11 @@ def main():
     # parrying_dagger = Parser.url_to_entity(WIKI_BASE_URL+"/Parrying+Dagger", EntityType.WEAPON, force_download_image=False)
     # print(parrying_dagger)
     # parrying_dagger.write_to_file()
+
+    # Torch
+    # torch = Parser.url_to_entity(WIKI_BASE_URL+"/Torch", EntityType.WEAPON, force_download_image=False)
+    # print(torch)
+    # torch.write_to_file()
 
 if __name__=="__main__":
     main()
