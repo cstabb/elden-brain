@@ -1,0 +1,57 @@
+-(tag:#hide OR tag:#AshOfWar OR tag:#StatusEffect OR tag:#Stat OR tag:#Spell OR tag:#Skill)
+
+Skills not found in Vault
+- Raptor of the Mists
+- Beast's Roar
+- Giant Hunt
+- Storm Blade
+- Storm Assault
+- Stormcaller
+- Storm Stomp
+- Phanton Slash
+- Determination
+- Royal Knight's Resolve
+- Glintstone Pebble (partial collition with Spell)
+- Glintblade Phalanx (collision with Spell)
+- Carian Greatsword (collision with Spell)
+- Waves of Darkness (appears in wiki as Ash of War: Waves of Darkness)
+- Flaming Strike
+- Flame of the Redmanes
+- Eruption
+- Thunderbolt
+- Lightning Slash (appears in wiki as Ash of War: Lightning Slash)
+
+
+Exceptions
+- Rogier's Rapier [[Ash of War: Glintblade Phalanx|Glintblade Phalanx]]
+- Lance [[Ash of War: Waves of Darkness|Ash of War: Waves of Darkness]]
+- Executioner's Greataxe [[Ash of War: Lightning Slash|Ash of War: Lightning Slash]]
+
+Corrections:
+Nox Flowing Hammer [[Flowing Form (Nox Flowing Hammer)|Flowing Form]] (appears properly on Nox Flowing Sword)
+
+TODO:
+- Scarlet Rot hidden page not getting created/buildup string not handled in weapons
+- Iron Cleaver has malformed map link [Elden Ring Map here](/Interactive+Map?id=3681&lat=-100.70312&lng=119.9737&zoom=8&code=mapA "Elden Ring Interactive Map?id=3681&lat=-100.70312&lng=119.9737&zoom=8&code=mapA").
+- Ripple Blade has malformed map link [Elden Ring Map Link](/Interactive+Map?id=2920&lat=-107.4&lng=55.6&zoom=8&code=mapA "Elden Ring Interactive Map?id=2920&lat=-107.4&lng=55.6&zoom=8&code=mapA")
+- Bolt of Gransax has an entity map link [Erdtree Sanctuary grace](/Interactive+Map?id=4121&lat=-106.921&lng=115.778&zoom=8&code=mapA "Elden Ring Interactive Map?id=4121&lat=-106.921&lng=115.778&zoom=8&code=mapA")
+- Noble's Slender Sword has an entity map link [Agheel Lake South](/Interactive+Map?id=530&lat=-199.75&lng=113.111805&zoom=8 "Elden Ring Interactive Map?id=530&lat=-199.75&lng=113.111805&zoom=8")
+- Magma Wyrm's Scalesword has [[Golden Vow (Spell)|Golden Vow]]
+- Flowing curved sword has malformed map link [[Elden Ring Map](/Interactive+Map?id=4409&lat=-75.88&lng=140.11&zoom=8&code=mapA "Elden Ring Interactive Map?id=4409&lat=-75.88&lng=140.11&zoom=8&code=mapA")]
+- The following weapons has Ashes of War links:
+    Bandit's Curved Sword
+    Beast-Repellent Torch
+    Beastman's Curved Sword
+    Bloodhound Claws
+    Cinquedea
+    Dragon Halberd
+    Envoy's Greathorn
+    Executioner's Greataxe
+    Giant-Crusher
+    Hand Axe
+    Lance
+    Rogier's Rapier
+    Rotten Greataxe
+    Staff of the Guilty
+    Wakizashi
+    Warped Axe

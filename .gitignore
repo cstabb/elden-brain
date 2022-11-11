@@ -1,6 +1,6 @@
 /target
 /assets
-/cache
+/cache/*
 /.vscode
 /env
 elden_bring.code-workspace
