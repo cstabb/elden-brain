@@ -8,8 +8,6 @@ import requests
 from bs4 import BeautifulSoup as bs
 from markdownify import markdownify as md
 
-change = 'CHANGE'
-
 # List of entities that exhibit parsing issues due to inconsistency with other similar pages
 weapons_blacklist = ["Miquellan Knight's Sword", "Greataxe"]
 items_blacklist = []
@@ -20,50 +18,47 @@ bosses_blacklist = ["Dragonkin Soldier"]
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 log = logging.getLogger("elden-bring-logger")
 
-WIKI_BASE_URL = "https://eldenring.wiki.fextralife.com"
+URL_WIKI_BASE = "https://eldenring.wiki.fextralife.com"
 
 ## File Locations
-CACHE_LOCATION = "cache/"
-VAULT_NAME = "Elden Ring/"
-IMAGE_WRITE_DIRECTORY = "Assets/" # If this is set, also set Obsidian's Attachment folder path to the same value (found in Settings->Files & Links)
-HIDDEN_WRITE_DIRECTORY = "Hidden/"
+LOCAL_CACHE = "cache/"
+LOCAL_VAULT_NAME = "Elden Ring/"
+LOCAL_ASSETS = "Assets/" # If this is set, also set Obsidian's Attachment folder path to the same value (found in Settings->Files & Links)
+LOCAL_HIDDEN = "Hidden/"
 
 ### URLs
 
 ## Top-level URLs
-url_t1_equipmentandmagic = "/Equipment+&+Magic"
+PATH_EQUIPMENT_AND_MAGIC = "/Equipment+&+Magic"
 
 ## Mid-Level URLs
+PATH_WEAPONS = URL_WIKI_BASE + "/Weapons"
+PATH_SPIRIT_ASHES = URL_WIKI_BASE + "/Spirit+Ashes"
+PATH_SKILLS = URL_WIKI_BASE + "/Skills"
+PATH_SPELLS = URL_WIKI_BASE + "/Magic+Spells"
+PATH_SHIELDS = URL_WIKI_BASE + "/Shields"
+PATH_ARMOR = URL_WIKI_BASE + "/Armor"
+PATH_TALISMANS = URL_WIKI_BASE + "/Talismans"
+PATH_ITEMS = URL_WIKI_BASE + "/Items"
 
-url_t2_weapons = WIKI_BASE_URL + "/Weapons"
-url_t2_spirit_ashes = WIKI_BASE_URL + "/Spirit+Ashes"
-url_t2_skills = WIKI_BASE_URL + "/Skills"
-url_t2_spells = WIKI_BASE_URL + "/Magic+Spells"
-url_t2_shields = WIKI_BASE_URL + "/Shields"
-url_t2_armor = WIKI_BASE_URL + "/Armor"
-url_t2_talismans = WIKI_BASE_URL + "/Talismans"
-url_t2_items = WIKI_BASE_URL + "/Items"
+PATH_CREATURES_AND_ENEMIES = URL_WIKI_BASE + "/Creatures+and+Enemies"
+PATH_BOSSES = URL_WIKI_BASE + "/Bosses"
 
-url_t2_creaturesandenemies = WIKI_BASE_URL + "/Creatures+and+Enemies"
-url_t2_bosses = WIKI_BASE_URL + "/Bosses"
+PATH_LOCATIONS = URL_WIKI_BASE + "/Locations"
 
-url_t2_locations = WIKI_BASE_URL + "/Locations"
-
-url_t2_npcs = WIKI_BASE_URL + "/NPCs"
+PATH_NPCS = URL_WIKI_BASE + "/NPCs"
 
 ## Path final destination URLs
 # (Most of these will be parsed from lists on mid-level pages)
-
-url_t3_lore = WIKI_BASE_URL + "/Lore" # Used for scraping transcripts
+PATH_LORE = URL_WIKI_BASE + "/Lore" # Used for scraping transcripts
 
 ## Stretch Goals
-url_t3_effigies_of_the_martyr = WIKI_BASE_URL + "/Effigies+of+the+Martyr"
-url_t3_sites_of_grace = WIKI_BASE_URL + "/Sites+of+Grace"
-url_t3_sites_of_grace = WIKI_BASE_URL + "/Bell+Bearings"
-### TORRENT REMINDER - PAGE NOT WORTH SCRAPING
+PATH_EFFIGIES_OF_THE_MARTYR = URL_WIKI_BASE + "/Effigies+of+the+Martyr"
+PATH_SITES_OF_GRACE = URL_WIKI_BASE + "/Sites+of+Grace"
+PATH_BALL_BEARINGS = URL_WIKI_BASE + "/Bell+Bearings"
 
 ## Tags
-# (Most of these are derived)
+# Note: Most applied tags are derived from EntityType
 HIDDEN_TAG = "#hide"
 
 class EntityType(Enum):
@@ -178,7 +173,7 @@ class Entity:
         if filename is None:
             filename = self.name
 
-        path = CACHE_LOCATION + VAULT_NAME
+        path = LOCAL_CACHE + LOCAL_VAULT_NAME
         if self.category is not None:
             path += self.category.value + "/"
         # Create destination directory if it doesn't exist
@@ -238,7 +233,7 @@ class Image:
         if filename is not None:
             destination_path = filename
         else:
-            destination_path = CACHE_LOCATION + VAULT_NAME + IMAGE_WRITE_DIRECTORY + self.name
+            destination_path = LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + self.name
         with open(destination_path, 'wb') as handler:
             handler.write(image_data)
 
@@ -327,7 +322,7 @@ class Parser:
 
         This table contains descriptions, so visiting individual Skill pages is not necessary
         """
-        url = url_t2_skills
+        url = PATH_SKILLS
         response = requests.get(url)
         soup = bs(response.text, 'html.parser')
 
@@ -350,7 +345,7 @@ class Parser:
         """
         """
         entity_name = Parser.convert_token_to_name(url.split("/")[-1])
-        url = WIKI_BASE_URL + url
+        url = URL_WIKI_BASE + url
 
         response = requests.get(url)
         soup = bs(response.text, 'html.parser')
@@ -374,13 +369,13 @@ class Parser:
         image_tag = infobox.find('img') # First image is the one we want
         image_attr_src = image_tag['src']
         image_name = image_attr_src.split('/')[-1] # Get the target token
-        image_url = WIKI_BASE_URL + image_attr_src
+        image_url = URL_WIKI_BASE + image_attr_src
         image = Image(image_url)
         if force_download_image:
             image.write_to_file()
         else:
             # Download if file does not already exist
-            if ~os.path.isfile(CACHE_LOCATION + VAULT_NAME + IMAGE_WRITE_DIRECTORY + image_name):
+            if ~os.path.isfile(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + image_name):
                 image.write_to_file()
 
         all_img_tags = content_block.img
@@ -484,7 +479,7 @@ class Parser:
     def get_weapons_urls():
         """
         """
-        response = requests.get(url_t2_weapons)
+        response = requests.get(PATH_WEAPONS)
 
         soup = bs(response.text, 'html.parser')
 
@@ -501,7 +496,7 @@ class Parser:
     def get_shields_urls():
         """
         """
-        response = requests.get(url_t2_shields)
+        response = requests.get(PATH_SHIELDS)
 
         soup = bs(response.text, 'html.parser')
 
@@ -522,7 +517,7 @@ class Parser:
     def get_spirit_ashes_urls():
         """
         """
-        response = requests.get(url_t2_spirit_ashes)
+        response = requests.get(PATH_SPIRIT_ASHES)
 
         soup = bs(response.text, 'html.parser')
 
@@ -539,7 +534,7 @@ class Parser:
     def get_items_urls():
         """
         """
-        response = requests.get(url_t2_items)
+        response = requests.get(PATH_ITEMS)
 
         soup = bs(response.text, 'html.parser')
 
@@ -566,7 +561,7 @@ class Parser:
     def get_talisman_urls():
         """
         """
-        response = requests.get(url_t2_talismans)
+        response = requests.get(PATH_TALISMANS)
 
         soup = bs(response.text, 'html.parser')
 
@@ -583,7 +578,7 @@ class Parser:
     def get_spells_urls():
         """
         """
-        response = requests.get(url_t2_spells)
+        response = requests.get(PATH_SPELLS)
 
         soup = bs(response.text, 'html.parser')
 
@@ -607,7 +602,7 @@ class Parser:
     def get_locations_urls():
         """
         """
-        response = requests.get(url_t2_locations)
+        response = requests.get(PATH_LOCATIONS)
 
         soup = bs(response.text, 'html.parser')
 
@@ -633,7 +628,7 @@ class Parser:
     def get_locations_urls():
         """
         """
-        response = requests.get(url_t2_locations)
+        response = requests.get(PATH_LOCATIONS)
 
         soup = bs(response.text, 'html.parser')
 
@@ -659,7 +654,7 @@ class Parser:
     def get_bosses_urls():
         """
         """
-        response = requests.get(url_t2_bosses)
+        response = requests.get(PATH_BOSSES)
 
         soup = bs(response.text, 'html.parser')
 
@@ -678,7 +673,7 @@ class Parser:
     def get_armor_urls():
         """
         """
-        response = requests.get(url_t2_armor)
+        response = requests.get(PATH_ARMOR)
 
         soup = bs(response.text, 'html.parser')
 
@@ -694,7 +689,7 @@ class Parser:
     def get_creatures_and_enemies_urls():
         """
         """
-        response = requests.get(url_t2_creaturesandenemies)
+        response = requests.get(PATH_CREATURES_AND_ENEMIES)
 
         soup = bs(response.text, 'html.parser')
 
@@ -723,7 +718,7 @@ class Parser:
     def get_npcs_urls():
         """
         """
-        response = requests.get(url_t2_npcs)
+        response = requests.get(PATH_NPCS)
 
         soup = bs(response.text, 'html.parser')
 
@@ -876,10 +871,10 @@ class EldenBring:
             "Cookbooks", 
         ]
         # Create directories if they don't already exist
-        if not os.path.exists(CACHE_LOCATION + VAULT_NAME + IMAGE_WRITE_DIRECTORY):
-            os.mkdir(CACHE_LOCATION + VAULT_NAME + IMAGE_WRITE_DIRECTORY)
-        if not os.path.exists(CACHE_LOCATION + VAULT_NAME + HIDDEN_WRITE_DIRECTORY):
-            os.mkdir(CACHE_LOCATION + VAULT_NAME + HIDDEN_WRITE_DIRECTORY)
+        if not os.path.exists(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS):
+            os.mkdir(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS)
+        if not os.path.exists(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_HIDDEN):
+            os.mkdir(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_HIDDEN)
 
     def create_skills(self, overwrite=True):
         """
@@ -897,7 +892,7 @@ class EldenBring:
         all_targets = self.classes + self.stats + self.status_effects + \
                       self.weapon_type + self.shield_type + self.hide_list
         print(all_targets)
-        destination_path = CACHE_LOCATION + VAULT_NAME + HIDDEN_WRITE_DIRECTORY
+        destination_path = LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_HIDDEN
 
         log.info(f"Creating {len(all_targets)} hidden files...")
 
