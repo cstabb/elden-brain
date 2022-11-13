@@ -95,7 +95,7 @@ class Scraper:
     def url_to_entity(self, url, category=None, force_image_download=False):
         """
         """
-        entity_name = Scraper.convert_token_to_name(url.split("/")[-1])
+        entity_name = self.convert_token_to_name(url.split("/")[-1])
         url = URL_WIKI_BASE + url
 
         response = requests.get(url)
@@ -148,11 +148,12 @@ class Scraper:
         use_tokens = []
         moveset_tokens = []
         ashes_of_war_tokens = []
+        upgrades_tokens = []
         # Walk the block for the information
         # Recursive=False is necessary to avoid repeat nested tags
         for element in content_block.find_all(["h3", "p","ul"], recursive=False):
             #print("ELEMENT = ", str(element))
-            element_str = str(element)
+            element_str = str(element).replace(u'\xa0', ' ').strip()
             #print("ELEMENT\n------------" + element_str)
             # Set Mode
             # This works by dint of the first element always being this string (guaranteed?)
@@ -170,6 +171,9 @@ class Scraper:
             #'<h3 class="bonfire">Elden Ring Torch Moveset'
             elif '<h3 class="bonfire">moveset' in element_str.lower():
                 mode = 'MOVESET'
+            elif 'upgrades in elden ring</h3>' in element_str.lower():
+                print("=== MODE SWITCHED TO UPGRADES ===")
+                mode = 'UPGRADES'
 
             #print(f"MODE = {mode}\n=================\n{element_str}\n^^^^^^^^^^^^^^^^\n")
 
@@ -187,6 +191,8 @@ class Scraper:
                 ashes_of_war_tokens.append(str(element))
             elif mode == 'MOVESET':
                 moveset_tokens.append(str(element))
+            elif mode == 'UPGRADES':
+                upgrades_tokens.append(str(element))
         
         # Vagaries of the Notes & Tips section--
         # - Remove paragraphs
@@ -278,6 +284,10 @@ class Scraper:
 
     def get_items_urls(self):
         """
+        Get all Items URLS.
+
+        Several index pages beyond the wiki's Items page must be scraped 
+        to account for all items.
         """
         response = requests.get(PATH_ITEMS)
 
@@ -290,8 +300,6 @@ class Scraper:
         for item in content_block.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
             destination = item.get('href')
             urls.append(destination)
-        
-        urls = urls   # Last several elements contain throwaway urls
         
         urls = set(urls)    # Unique the values
         

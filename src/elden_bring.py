@@ -47,6 +47,7 @@ class EldenBring:
         "Discovery", 
         "FP", 
         "Poise", 
+        "Robustness", 
         "Standard Damage", 
         "Strike Damage", 
         "Critical Damage", 
@@ -182,7 +183,7 @@ class EldenBring:
 
         for idx, target in enumerate(all_targets):
             # Create a new file if it doesn't exist or overwrite is True
-            if overwrite or ~os.path.isfile(destination_path + target):
+            if overwrite or not os.path.isfile(destination_path + target):
                 self.log.info(f"Writing {target} hidden file [{idx+1} of {len(all_targets)}]...")
                 f = open(destination_path + target + '.md', 'w')
                 f.write(HIDDEN_TAG)

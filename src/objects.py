@@ -2,7 +2,7 @@ import os
 import re
 from enum import Enum
 
-import markdownify as md
+from markdownify import markdownify as md
 
 from constants import *
 from text_handling import Formatter
@@ -48,9 +48,10 @@ class Entity:
 
         return name_f_string + description_f_string + location_f_string + use_f_string + notes_f_string
 
-    def perform_targeted_corrections(self, text=""):
+    def perform_targeted_corrections(self, text):
+        correction = text
 
-        # would use match here if Pylance recognized my interpreter as being newer than Python 3.10...
+        # Would use match here if Pylance recognized my interpreter as being newer than Python 3.10...
         if self.category == 'Weapons':
             if self.name == "Alabaster Lord's Sword":
                 correction = re.sub(r"Alabaster Lords' Pull", r"Alabaster Lord's Pull", text)
@@ -72,7 +73,9 @@ class Entity:
                 #[\'\,\"\/\(\)\+ \.\|\[\]#\*\w\&\n]*
                 correction = re.sub(r" ### Elden Ring Torch Moveset[\'\,\"\/\(\)\+ \.\|\[\]#\*\w\&\n]*", r"", text)
                 #correction = re.sub(r"\n\n", r"\n", correction)
-
+        # print(text)
+        # print('-----------------')
+        # print(correction)
         return correction
 
     def format_links(self, md_text):
@@ -89,7 +92,7 @@ class Entity:
         rx_links = re.sub(r"\[([^]]+)\]\(\/([^?\[\]]+) \"Elden Ring ([^\[\]]+)\"\)", r"[[\3|\1]]", rx_remove_map_links) # Reformat links
         
         # Due diligence
-        rx_other_notes = re.sub(r"Other notes and player tips go here\.*", r"", rx_links)
+        rx_other_notes = re.sub(r"\* Other notes and player tips go here\.*", r"", rx_links)
         rx_unlink_builds = re.sub(r"\[\[Builds#[^\|]+\|([^\]]+)\]\]", r"\1", rx_other_notes)
         rx_special_weaknesses = re.sub(r"\[\[Special Weaknesses#[^\]]+\|([^\]]+)\]\]", r"\1", rx_unlink_builds)
         rx_ash_of_war_skill_links = re.sub(r"\[\[Ash of War: ", r"[[", rx_special_weaknesses)
@@ -113,7 +116,7 @@ class Entity:
         # Create destination directory if it doesn't exist
         if not os.path.exists(path):
             os.mkdir(path)
-
+        
         f = open(path + filename+'.md', 'w')
         
         tags_md_string = ""
@@ -129,7 +132,7 @@ class Entity:
 
         image = ""
         if self.image is not None:
-            image = "![["+self.image.url.split("/")[-1]+"]]\n"
+            image = "![["+self.image.name+"]]\n"
         
         description_md_string = ""
         if self.description != "":
@@ -148,7 +151,7 @@ class Entity:
             notes_md_string = f"## Notes & Tips\n\n{self.notes}\n\n"
 
         output_str = tags_md_string + image + description_md_string + location_md_string + use_md_string + notes_md_string
-        
+        #print(output_str)
         f.write(output_str)
         f.close()
 
