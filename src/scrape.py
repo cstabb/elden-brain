@@ -9,7 +9,10 @@ from bs4 import BeautifulSoup as bs
 from markdownify import markdownify as md
 
 # List of entities that exhibit parsing issues due to inconsistency with other similar pages
-blacklist = ["Miquellan Knight's Sword", "Greataxe"]
+weapons_blacklist = ["Miquellan Knight's Sword", "Greataxe"]
+items_blacklist = []
+spells_blacklist = ["Placidusax's Ruin"]
+bosses_blacklist = ["Dragonkin Soldier"]
 
 # Set up logger
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
@@ -26,7 +29,7 @@ HIDDEN_WRITE_DIRECTORY = "Hidden/"
 ### URLs
 
 ## Top-level URLs
-url_t1_equipmentandmagic = "https://eldenring.wiki.fextralife.com/Equipment+&+Magic"
+url_t1_equipmentandmagic = "/Equipment+&+Magic"
 
 ## Mid-Level URLs
 
@@ -51,16 +54,26 @@ url_t2_npcs = WIKI_BASE_URL + "/NPCs"
 
 url_t3_lore = WIKI_BASE_URL + "/Lore" # Used for scraping transcripts
 
+## Stretch Goals
+url_t3_effigies_of_the_martyr = WIKI_BASE_URL + "/Effigies+of+the+Martyr"
+url_t3_sites_of_grace = WIKI_BASE_URL + "/Sites+of+Grace"
+url_t3_sites_of_grace = WIKI_BASE_URL + "/Bell+Bearings"
+### TORRENT REMINDER - PAGE NOT WORTH SCRAPING
+
 ## Tags
 # (Most of these are derived)
 HIDDEN_TAG = "#hide"
 
 class EntityType(Enum):
     WEAPON = 'Weapons'
+    SHIELD = 'Shields'
     ITEM = 'Items'
     NPC = 'NPCs'
     SPELL = 'Spells'
     SKILL = 'Skills'
+    LOCATION = 'Locations'
+    ENEMY = 'Creatures and Enemies'
+    BOSS = 'Bosses'
 
 class Entity:
     def __init__(self, name, url='', category=None, image=None, type='', header='', description='', location='', use='', notes=''):
@@ -105,27 +118,29 @@ class Entity:
         return name_f_string + description_f_string + location_f_string + use_f_string + notes_f_string
 
     def perform_targeted_corrections(self, text=""):
-        correction = text
-        if self.name == "Alabaster Lord's Sword":
-            correction = re.sub(r"Alabaster Lords' Pull", r"Alabaster Lord's Pull", text)
-        elif self.name == "Parrying Dagger":
-            correction = re.sub(r"PATCHES BELL BEARING", r"Patches' Bell Bearing", text)
-        elif self.name == "Bloodstained Dagger":
-            correction = re.sub(r"#gsc\.tab=0", r"", text)
-        elif self.name == "Royal Greatsword":
-            correction = re.sub(r"\/\/Strength", r"Strength", text)
-        elif self.name == "Vulgar Militia Saw":
-            correction = re.sub(r"\+ \[Example farming route\]\(\/file\/Elden\-Ring\/vulgar\_militia\_saw\.png \"Example farming route\"\)", r"", text)
-        elif self.name == "Flowing Curved Sword":
-            correction = re.sub(r" See it on the +\.", r"", text)
-        elif self.name == "Nox Flowing Hammer":
-            correction = re.sub(r"\[\[(Flowing Form) \(Nox Flowing Hammer\)", r"[[\1", text)
-        elif self.name == "Bolt of Gransax":
-            correction = re.sub(r"\[\[(Leyndell Royal Capital) \(Legacy Dungeon\)#[^\]]+\]\]", r"[[\1|\1]]", text)
-        elif self.name == "Torch":
-            #[\'\,\"\/\(\)\+ \.\|\[\]#\*\w\&\n]*
-            correction = re.sub(r" ### Elden Ring Torch Moveset[\'\,\"\/\(\)\+ \.\|\[\]#\*\w\&\n]*", r"", text)
-            #correction = re.sub(r"\n\n", r"\n", correction)
+
+        # would use match here if Pylance recognized my interpreter as being newer than Python 3.10...
+        if self.type == EntityType.WEAPON:
+            if self.name == "Alabaster Lord's Sword":
+                correction = re.sub(r"Alabaster Lords' Pull", r"Alabaster Lord's Pull", text)
+            elif self.name == "Parrying Dagger":
+                correction = re.sub(r"PATCHES BELL BEARING", r"Patches' Bell Bearing", text)
+            elif self.name == "Bloodstained Dagger":
+                correction = re.sub(r"#gsc\.tab=0", r"", text)
+            elif self.name == "Royal Greatsword":
+                correction = re.sub(r"\/\/Strength", r"Strength", text)
+            elif self.name == "Vulgar Militia Saw":
+                correction = re.sub(r"\+ \[Example farming route\]\(\/file\/Elden\-Ring\/vulgar\_militia\_saw\.png \"Example farming route\"\)", r"", text)
+            elif self.name == "Flowing Curved Sword":
+                correction = re.sub(r" See it on the +\.", r"", text)
+            elif self.name == "Nox Flowing Hammer":
+                correction = re.sub(r"\[\[(Flowing Form) \(Nox Flowing Hammer\)", r"[[\1", text)
+            # elif self.name == "Bolt of Gransax":
+            #     correction = re.sub(r"\[\[(Leyndell Royal Capital) \(Legacy Dungeon\)#[^\]]+\]\]", r"[[\1|\1]]", text)
+            elif self.name == "Torch":
+                #[\'\,\"\/\(\)\+ \.\|\[\]#\*\w\&\n]*
+                correction = re.sub(r" ### Elden Ring Torch Moveset[\'\,\"\/\(\)\+ \.\|\[\]#\*\w\&\n]*", r"", text)
+                #correction = re.sub(r"\n\n", r"\n", correction)
 
         return correction
 
@@ -178,7 +193,8 @@ class Entity:
         #     additional_tags = "\n- " + "\n- ".join(additional_tags)
         # tags_md_string = f"---\ntags:\n- {self.category.value}{additional_tags}\n---\n\n"
         if self.category is not None:
-            tags_md_string = f"#{self.category.value}\n\n"
+            category_string = re.sub(r" +", r"", self.category.value)
+            tags_md_string = f"#{category_string}\n\n"
 
         image = ""
         if self.image is not None:
@@ -258,6 +274,16 @@ class Parser:
     Collection of functions to parse HTML pages into entities.
     """
 
+    legacy_dungeons = [
+        "/Leyndell+Royal+Capital+(Legacy+Dungeon)", 
+        "/Stormveil+Castle", 
+        "/Raya+Lucaria+Academy",  
+        "/Volcano+Manor", 
+        "/Miquella's+Haligtree",
+        "/Elphael,+Brace+of+the+Haligtree", 
+        "/Crumbling+Farum+Azula", 
+    ]
+
     def get_url_last_token(url):
         """
         Get URL's last token
@@ -273,6 +299,7 @@ class Parser:
         """
         return token.replace('+', ' ')
 
+    #TODO: Return a list of entities instead of writing to files immediately
     def convert_urls_to_entities(urls, category=None):
         """
         """
@@ -280,12 +307,15 @@ class Parser:
         if category is not None and type(category) == EntityType:
             this_category = category
 
+        blacklist = weapons_blacklist + items_blacklist + spells_blacklist + bosses_blacklist
+
         log.info(f"Parsing {len(urls)} entities...")
         for idx, endpoint in enumerate(urls):
             entity_name = endpoint.split('/')[-1].replace('+', ' ')
             if entity_name in blacklist:
                 continue
             log.info(f"Parsing {entity_name} [{idx+1} of {len(urls)}]...")
+            print(endpoint)
             entity = Parser.url_to_entity(endpoint, this_category, force_download_image=False)
             entity.write_to_file()
 
@@ -318,6 +348,7 @@ class Parser:
         """
         """
         entity_name = Parser.convert_token_to_name(url.split("/")[-1])
+        url = WIKI_BASE_URL + url
 
         response = requests.get(url)
         soup = bs(response.text, 'html.parser')
@@ -353,10 +384,8 @@ class Parser:
         all_img_tags = content_block.img
         all_img_tags.decompose()
 
-        all_linelefts = content_block.find_all('div', attrs={'class', 'lineleft'})
-
         description = ''
-        for lineleft in all_linelefts:
+        for lineleft in content_block.find_all('div', attrs={'class', 'lineleft'}):
             # Get description
             paragraphs = lineleft.find_all('em')
             if len(paragraphs) == 0:
@@ -450,7 +479,7 @@ class Parser:
 
         return Entity(entity_name, url, category=category, image=image, description=description, location=location, use=use, notes=notes)
 
-    def get_weapons_urls(limit=None):
+    def get_weapons_urls():
         """
         """
         response = requests.get(url_t2_weapons)
@@ -459,25 +488,53 @@ class Parser:
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
-        # Get all Weapon objects from the main Weapons page
-        weapon_urls = []
-        i = 0
+        # Get all entities from the main Weapons page
+        urls = []
         for item in content_block.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
-            i += 1
-            if i == 1:
-                continue
-            if limit is not None:
-                if i > limit+1:
-                    break
-
             destination = item.get('href')
+            urls.append(destination)
 
-            weapon_url = WIKI_BASE_URL + destination
-            weapon_urls.append(weapon_url)
+        return urls
 
-        return weapon_urls
+    def get_shields_urls():
+        """
+        """
+        response = requests.get(url_t2_shields)
 
-    def get_items_urls(limit=None):
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        # Get all entities from the main Weapons page
+        urls = []
+        for item in content_block.find_all('h4'):
+            for link in item.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
+                print(link)
+                destination = link.get('href')
+                urls.append(destination)
+
+        urls = list(set(urls)) # Unique
+
+        return urls
+
+    def get_spirit_ashes_urls():
+        """
+        """
+        response = requests.get(url_t2_spirit_ashes)
+
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        # Get all entities from the main Weapons page
+        urls = []
+        for item in content_block.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
+            destination = item.get('href')
+            urls.append(destination)
+
+        return urls
+
+    def get_items_urls():
         """
         """
         response = requests.get(url_t2_items)
@@ -486,23 +543,209 @@ class Parser:
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
-        # Get all Weapon objects from the main Weapons page
-        item_urls = []
-        i = 0
+        # Get all entities from the main Weapons page
+        urls = []
         for item in content_block.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
-            i += 1
-            if i == 1:
-                continue
-            if limit is not None:
-                if i > limit+1:
-                    break
-
             destination = item.get('href')
+            urls.append(destination)
+        
+        urls = urls   # Last several elements contain throwaway urls
+        
+        urls = set(urls)    # Unique the values
+        
+        exclude = {
+            "/Interactive+map?id=4605&lat=-93.653126&lng=115.069298&zoom=8&code=mapA",
+        }
 
-            item_url = WIKI_BASE_URL + destination
-            item_urls.append(item_url)
+        urls = urls - exclude   # drop Legacy Dungeons from list
 
-        return item_urls
+        return list(urls)
+    
+    def get_talisman_urls():
+        """
+        """
+        response = requests.get(url_t2_talismans)
+
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        # Get all entities from the main Weapons page
+        urls = []
+        for item in content_block.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
+            destination = item.get('href')
+            urls.append(destination)
+
+        return urls
+
+    def get_spells_urls():
+        """
+        """
+        response = requests.get(url_t2_spells)
+
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        # Get all entities from the main Weapons page
+        urls = []
+        for content in content_block.find_all('div', attrs={'class': 'tabcontent 0-tab tabcurrent'}):
+            for item in content.find_all('h4', attrs={'style': 'text-align: center;'}):
+                for link in item.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
+                    destination = link.get('href')
+                    urls.append(destination)
+
+        urls = list(set(urls)) # Unique
+
+        return urls
+
+    def get_legacy_dungeons_urls():
+        return Parser.legacy_dungeons
+
+    def get_locations_urls():
+        """
+        """
+        response = requests.get(url_t2_locations)
+
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        # Get all entities from the main Locations page
+        urls = []
+        for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'row'})):
+            for link in row.find_all('a', attrs={'class': 'wiki_link'}):
+                destination = link.get('href')
+                urls.append(destination)
+
+        urls = urls[0:-6]   # Last several elements contain throwaway urls
+        
+        urls = set(urls)    # Unique the values
+        print(Parser.legacy_dungeons)
+        exclude =  set(Parser.legacy_dungeons + ["/Legacy+Dungeons"])
+
+        urls = urls - exclude   # drop Legacy Dungeons from list
+
+        return list(urls)
+
+    def get_locations_urls():
+        """
+        """
+        response = requests.get(url_t2_locations)
+
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        # Get all entities from the main Locations page
+        urls = []
+        for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'row'})):
+            for link in row.find_all('a', attrs={'class': 'wiki_link'}):
+                destination = link.get('href')
+                urls.append(destination)
+
+        urls = urls[0:-6]   # Last several elements contain throwaway urls
+        
+        urls = set(urls)    # Unique the values
+        print(Parser.legacy_dungeons)
+        exclude =  set(Parser.legacy_dungeons + ["/Legacy+Dungeons"])
+
+        urls = urls - exclude   # drop Legacy Dungeons from list
+
+        return list(urls)
+    
+    def get_bosses_urls():
+        """
+        """
+        response = requests.get(url_t2_bosses)
+
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        # Get all entities from the main Locations page
+        urls = []
+        for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'tabcontent 0-tab tabcurrent'})):
+            for line in row.find_all('li'):
+            # for link in row.find_all('a', attrs={'class': 'wiki_link'}):
+                destination = line.a.get('href')
+                urls.append(destination)
+
+        return urls
+
+    def get_armor_urls():
+        """
+        """
+        response = requests.get(url_t2_armor)
+
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        # Get all entities from the main Locations page
+        urls = []
+        
+        #TODO
+
+        return urls
+
+    def get_creatures_and_enemies_urls():
+        """
+        """
+        response = requests.get(url_t2_creaturesandenemies)
+
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        # Get all entities from the main Locations page
+        urls = []
+        # for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'row'})):
+        for idx, content in enumerate(content_block.find_all('div', attrs={'class': 'tabcontent 1-tab'})):
+            for link in content.find_all('a', attrs={'class': 'wiki_link'}):
+                #print(link)
+                destination = link.get('href')
+                print(destination)
+                urls.append(destination)
+        
+        urls = set(urls)    # Unique the values
+        
+        exclude = {
+            "/NPC+Invaders", 
+        }
+
+        urls = urls - exclude   # drop Legacy Dungeons from list
+        
+        return list(urls)
+
+    def get_npcs_urls():
+        """
+        """
+        response = requests.get(url_t2_npcs)
+
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        # Get all entities from the main Locations page
+        urls = []
+        for idx, row in enumerate(content_block.find_all('div', attrs={'id': 'reveal'})):
+            for link in row.find_all('a', attrs={'class': 'wiki_link'}):
+                destination = link.get('href')
+                destination = '/' + destination.split('/')[-1]
+                urls.append(destination)
+
+        urls = set(urls)    # Unique the values
+        
+        exclude = {
+            "/Isolated+Merchants", 
+            "/Nomadic+Merchants", 
+            "/Volcano+Manor+Spirit", 
+        }
+
+        urls = urls - exclude   # drop Legacy Dungeons from list
+
+        return list(urls)
 
 # ====================================================
 
@@ -537,6 +780,9 @@ class EldenBring:
             "Discovery", 
             "FP", 
             "Poise", 
+            "Standard Damage", 
+            "Strike Damage", 
+            "Critical Damage", 
         ]
 
         self.status_effects = [
@@ -555,8 +801,19 @@ class EldenBring:
             "Sorceries", 
             "Incantations", 
             "Bestial Incantations", 
-            "Cold Sorceries", 
             "Aberrant Sorceries", 
+            "Carian Sorceries", 
+            "Claymen Sorceries", 
+            "Crystalian Sorceries", 
+            "Death Sorceries", 
+            "Full Moon Sorceries", 
+            "Glintstone Sorceries", 
+            "Gravity Sorceries", 
+            "Loretta's Sorceries", 
+            "Magma Sorceries", 
+            "Night Sorceries", 
+            "Primeval Sorceries", 
+            "Cold Sorceries", 
         ]
 
         self.weapon_type = [
@@ -613,6 +870,8 @@ class EldenBring:
             "Creatures and Enemies", 
             "New Game Plus", 
             "Upgrades", 
+            "Crafting Materials", 
+            "Cookbooks", 
         ]
         # Create directories if they don't already exist
         if not os.path.exists(CACHE_LOCATION + VAULT_NAME + IMAGE_WRITE_DIRECTORY):
@@ -620,7 +879,7 @@ class EldenBring:
         if not os.path.exists(CACHE_LOCATION + VAULT_NAME + HIDDEN_WRITE_DIRECTORY):
             os.mkdir(CACHE_LOCATION + VAULT_NAME + HIDDEN_WRITE_DIRECTORY)
 
-    def create_skills(self):
+    def create_skills(self, overwrite=True):
         """
         """
         skill_entities = Parser.get_skill_entities()
@@ -628,14 +887,9 @@ class EldenBring:
         log.info(f"Parsing {len(skill_entities)} Skills...")
         
         for idx, skill in enumerate(skill_entities):
-            # destination_path = CACHE_LOCATION + VAULT_NAME + 'Skills/'
-            # print(skill.name)
-            # print(destination_path + skill.name + '.md')
-            # print(os.path.isfile(destination_path + skill.name + '.md'))
-            # while ~os.path.isfile(CACHE_LOCATION + VAULT_NAME + 'Skills/' + skill.name + '.md'):
             log.info(f"Creating {skill.name} [{idx+1} of {len(skill_entities)}]...")
             skill.write_to_file()
-            time.sleep(0.001)
+            time.sleep(0.001)   # Necessary to allow Obsidian time to update with the new file
         
     def create_hidden(self, overwrite=True):
         all_targets = self.classes + self.stats + self.status_effects + \
@@ -652,24 +906,133 @@ class EldenBring:
                 f = open(destination_path + target + '.md', 'w')
                 f.write(HIDDEN_TAG)
                 f.close()
-                time.sleep(0.001)
+                time.sleep(0.001)   # Necessary to allow Obsidian time to update with the new file
+
+    def create_weapons(self, overwrite=True):
+        """
+        """
+        urls = Parser.get_weapons_urls()
+        entities = Parser.convert_urls_to_entities(urls, EntityType.WEAPON)
+
+        log.info(f"Parsing {len(entities)} {EntityType.WEAPON}...")
+        
+        for idx, entity in enumerate(entities):
+            log.info(f"Creating {entity.name} [{idx+1} of {len(entities)}]...")
+            entity.write_to_file()
+            #time.sleep(0.001)
+
+    def create_shields(self, overwrite=True):
+        """
+        """
+        urls = Parser.get_shields_urls()
+        Parser.convert_urls_to_entities(urls, EntityType.SHIELD)
+
+    def create_armor(self, overwrite=True):
+        #TODO
+        pass
+
+    def create_items(self, overwrite=True):
+        """
+        """
+        urls = Parser.get_items_urls()
+        entities = Parser.convert_urls_to_entities(urls, EntityType.ITEM)
+
+    def create_locations(self, overwrite=True):
+        """
+        """
+        urls = Parser.get_locations_urls()
+        Parser.convert_urls_to_entities(urls, EntityType.LOCATION)
+
+    def create_legacy_dungeons(self, overwrite=True):
+        """
+        """
+        urls = Parser.get_legacy_dungeons_urls()
+        print(urls)
+        print(len(urls))
+        Parser.convert_urls_to_entities(urls, EntityType.LOCATION)
+
+    def create_spells(self, overwrite=True):
+        """
+        """
+        urls = Parser.get_spells_urls()
+        Parser.convert_urls_to_entities(urls, EntityType.SPELL)
+
+    def create_spirit_ashes(self, overwrite=True):
+        #TODO
+        pass
+
+    def create_creatures_and_enemies(self, overwrite=True):
+        """
+        """
+        urls = Parser.get_creatures_and_enemies_urls()
+        Parser.convert_urls_to_entities(urls, EntityType.ENEMY)
+
+    def create_bosses(self, overwrite=True):
+        """
+        """
+        urls = Parser.get_bosses_urls()
+        # print(urls)
+        # print(len(urls))
+        Parser.convert_urls_to_entities(urls, EntityType.BOSS)
+
+    def create_npcs(self, overwrite=True):
+        """
+        """
+        urls = Parser.get_npcs_urls()
+        Parser.convert_urls_to_entities(urls, EntityType.NPC)
 
 def main():
 
     eb = EldenBring()
 
-    # eb.create_skills()
-    # eb.create_hidden()
+    # eb.create_skills() # WORKS
+    # eb.create_hidden() # WORKS
+    # eb.create_weapons() # WORKS
+    # eb.create_shields() # WORKS
+    # eb.create_armor()
+    # eb.create_locations() # WORKS
+    # eb.create_legacy_dungeons() # NEEDS SPECIAL PAGE PARSING
+    # eb.create_spells() # WORKS
+    # eb.create_spirit_ashes()
+    # eb.create_creatures_and_enemies() # WORKS
+    eb.create_bosses()
+    # eb.create_npcs() # WORKS
 
     # Create destination directory if it doesn't exist
     # if not os.path.exists(CACHE_LOCATION + VAULT_NAME + IMAGE_WRITE_DIRECTORY):
     #     os.mkdir(CACHE_LOCATION + VAULT_NAME + IMAGE_WRITE_DIRECTORY)
 
     # all_endpoints = get_all_endpoints()
-    # all_item_urls = Parser.get_items_urls()
-    all_weapon_urls = Parser.get_weapons_urls()
 
-    Parser.convert_urls_to_entities(all_weapon_urls, EntityType.WEAPON)
+    # all_item_urls = Parser.get_items_urls()
+    # print(all_item_urls)
+    # print(len(all_item_urls))
+    # f = open(CACHE_LOCATION + VAULT_NAME + 'temp.txt', 'w')
+    # f.write('\n'.join(list(set(all_item_urls))))
+    # f.close()
+    # Parser.convert_urls_to_entities(all_item_urls, EntityType.ITEM)
+
+    # all_legacy_dungeon_urls = Parser.get_legacy_dungeon_urls()
+    # print(all_legacy_dungeon_urls)
+
+    # all_weapon_urls = Parser.get_weapons_urls()
+    # Parser.convert_urls_to_entities(all_weapon_urls, EntityType.WEAPON)
+
+    # all_location_urls = Parser.get_location_urls()
+    # print(len(all_location_urls))
+    # Parser.convert_urls_to_entities(all_location_urls, EntityType.LOCATION)
+
+    # f = open(CACHE_LOCATION + VAULT_NAME + 'temp.txt', 'w')
+    # f.write('\n'.join(list(set(all_location_urls))))
+    # f.close()
+    # print(all_location_urls)
+
+    ## NPCS
+    # all_npcs_urls = Parser.get_npcs_urls()
+    # print(all_npcs_urls)
+    # print(len(all_npcs_urls))
+    # Parser.convert_urls_to_entities(all_npcs_urls, EntityType.NPC)
+    
     
     # dagger = Parser.url_to_entity(WIKI_BASE_URL+"/Dagger", EntityType.WEAPON, force_download_image=False)
     # print(dagger)
