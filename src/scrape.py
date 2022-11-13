@@ -8,6 +8,8 @@ import requests
 from bs4 import BeautifulSoup as bs
 from markdownify import markdownify as md
 
+change = 'CHANGE'
+
 # List of entities that exhibit parsing issues due to inconsistency with other similar pages
 weapons_blacklist = ["Miquellan Knight's Sword", "Greataxe"]
 items_blacklist = []
