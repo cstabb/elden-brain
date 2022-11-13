@@ -1,42 +1,74 @@
 -(tag:#hide OR tag:#AshOfWar OR tag:#StatusEffect OR tag:#Stat OR tag:#Spells OR tag:#Skills)
 
-Skills not found in Vault
-- Raptor of the Mists
-- Beast's Roar
-- Giant Hunt
-- Storm Blade
-- Storm Assault
-- Stormcaller
-- Storm Stomp
-- Phanton Slash
-- Determination
-- Royal Knight's Resolve
-- Glintstone Pebble (partial collition with Spell)
-- Glintblade Phalanx (collision with Spell)
-- Carian Greatsword (collision with Spell)
-- Waves of Darkness (appears in wiki as Ash of War: Waves of Darkness)
-- Flaming Strike
-- Flame of the Redmanes
-- Eruption
-- Thunderbolt
-- Lightning Slash (appears in wiki as Ash of War: Lightning Slash)
+### PROGRESS
+- Weapons (90% Complete)
+    - PARSES
+    - TODO
+        - Fix blacklist cases
+        - Edge cases
+- Locations (60% Complete)
+    - PARSES
+    - TODO
+        - Parse sections after Descriptions as applicable
+- Hidden (95% Complete)
+    - TODO
+        - Add to list as necessary
+- NPCs (40% Complete)
+    - PARSES
+    - TODO
+        - Add merchants to list of NPCs
+            - Grab from Merchants page
+        - Parse description for all NPCs
+        - Parse location
+        - Parse dialogue
+- Items (20% Complete)
+    - TODO
+        - Items are split across several father pages. The main Items page covers Key Items. The rest are
+            - Arrows+and+Bolts
+            - Bell+Bearings
+            - Cookbooks
+            - Consumables
+            - Materials
+            - Crystal+Tears
+            - Great+Runes
+            - Info+Items
+            - Multiplayer+Items
+            - Remembrance
+            - Tools
+            - Upgrade+Materials
+            - Whetblades
+        - Tonic of Forgetfulness missing?
+        - Tidy up parsing
+        - Edge cases
+- Creatures and Enemies
+    - TODO
+        - Remove spaces from tag
+        - Only the image and Notes & Tips is getting parsed for some entities
+- Bosses
+    - TODO
+        - 
+- Spells (70% Complete)
+    - TODO
+        - Fix blacklist cases
+        - Fix parsing issues
+        - Parse Spell Type
+- Shields (90% Complete)
+    - TODO
+        - Fix parsing issues
 
-
-Exceptions
-- Rogier's Rapier [[Ash of War: Glintblade Phalanx|Glintblade Phalanx]]
-- Lance [[Ash of War: Waves of Darkness|Ash of War: Waves of Darkness]]
-- Executioner's Greataxe [[Ash of War: Lightning Slash|Ash of War: Lightning Slash]]
-
-TODO:
-- Ripple Blade extraneous <br>s in its description
+### KNOWN ISSUES
+- Weapons
+    - Ripple Blade, Torchpole have extraneous <br>s in its description
+    - Noble's Slender Sword [Agheel Lake South] not formed correctly, links to "Agheel"
+    - Nox Flowing Hammer, Serpentbone Blade now have Moveset not properly parsed out
+    - "Leyndell Royal Capital" and "Leyndell, Royal Capital" are used
+    - "Ancient Lightning Spear" missing from Skills
+- Locations
+    - Parses only imageg and the description
+- NPCs
+    - /Volcano+Manor+Spirit is excluded as it's missing an image and is a unique page, although there is some dialogue here possibly worth scraping
+- Characters causing parsing issues:
+    - /u2193
 
 Check
-- Torch moveset section not parsing properly
-- Serpentbone Blade, last line, check that build# is no longer a link
-- Magma Wyrm's Scalesword has [[Golden Vow (Spell)|Golden Vow]]
-- Iron Cleaver extra period in second Location bullet due to removed links
-- Flowing curved sword has a dangling " See it on the ."
-- Dragonscale Blade has Special Weaknesses#dragon
-- Ash of War: skill links (Bloodhound Claws, Cinquedea, Lance, Warped Axe)
-- Nox Flowing Hammer [[Flowing Form (Nox Flowing Hammer)|Flowing Form]] (appears properly on Nox Flowing Sword)
 - Bolt of Gransax has a strange link [[Leyndell Royal Capital]]
