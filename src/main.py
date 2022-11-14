@@ -5,10 +5,18 @@ def main():
 
     eb = EldenBring()
 
-    logging.basicConfig(level=os.environ.get('LOGLEVEL', 'INFO'))
-    log = logging.getLogger('elden-bring-logger')
+    # logging.basicConfig(level=os.environ.get('LOGLEVEL', 'INFO'))
+    # log = logging.getLogger('elden-bring-logger')
 
-    scraper = Scraper(log)
+    # scraper = Scraper(log)
+
+    eb.prepare_entities('Talismans')
+    talismans_names = eb.get_entity_names('Talismans')
+    eb.scrape_entities('Talismans')
+
+    # print(talismans_names)
+    print(eb['Talismans'][0])
+    print(len(talismans_entities))
 
     # eb.create_skills() # WORKS
     # eb.create_hidden() # WORKS
@@ -22,6 +30,7 @@ def main():
     # eb.create_creatures_and_enemies() # WORKS
     # eb.create_bosses()
     # eb.create_npcs() # WORKS
+    # eb.create_talismans()
 
     # Create destination directory if it doesn't exist
     # if not os.path.exists(CACHE_LOCATION + VAULT_NAME + IMAGE_WRITE_DIRECTORY):
@@ -59,9 +68,9 @@ def main():
     # Parser.convert_urls_to_entities(all_npcs_urls, EntityType.NPC)
 
     # Dagger
-    dagger = scraper.url_to_entity("/Dagger", EntityType.WEAPON, force_image_download=False)
-    print(dagger)
-    dagger.write()
+    # dagger = scraper.url_to_entity("/Dagger", EntityType.WEAPON, force_image_download=False)
+    # print(dagger)
+    # dagger.write()
 
     # Gravel Stone Seal
     # gravel_stone_seal = scraper.url_to_entity("/Gravel+Stone+Seal", EntityType.WEAPON, force_image_download=False)

@@ -8,9 +8,9 @@ from constants import *
 from text_handling import Formatter
 
 class Entity:
-    def __init__(self, name, url='', category=None, image=None, header='', description='', location='', use='', notes=''):
+    def __init__(self, name, path='', category=None, image=None, header='', description='', location='', use='', notes=''):
         self.name = name
-        self.url = url
+        self.path = path
         self.category = category
         self.image = image
         #TODO: assert type is EntityType before assignment

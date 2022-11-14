@@ -11,6 +11,12 @@ class Scraper:
     Collection of functions to parse HTML pages into entities.
     """
 
+    # List of entities that exhibit parsing issues due to inconsistency with other similar pages
+    weapons_blacklist = ["Miquellan Knight's Sword", "Greataxe"]
+    items_blacklist = []
+    spells_blacklist = ["Placidusax's Ruin"]
+    bosses_blacklist = ["Dragonkin Soldier"]
+
     # The Legacy Dungeons page is different enough, and there few enough instances, that these can be hardcoded here
     _legacy_dungeons = [
         "/Leyndell+Royal+Capital+(Legacy+Dungeon)", 
@@ -25,45 +31,23 @@ class Scraper:
     def __init__(self, logger):
         self.log = logger
 
-    def get_url_last_token(self, url):
-        """
-        Get URL's last token
-        """
-        endpoint = url.split('/')[-1]
-        return endpoint
-
-    def convert_token_to_name(self, token):
-        """
-        Convert the last URL token to an entity name
-
-        Tokens substitute a + for space, so this function substitutes a space for +
-        """
-        return token.replace('+', ' ')
-
-    def convert_urls_to_entities(self, urls=[], category=''):
+    def convert_paths_to_entities(self, paths=[], category=''):
         """
         Convert a list of URLs into entity objects.
         """
-        self.log.info(f"Parsing {len(urls)} {category.value} entities...")
+        self.log.info(f"Creating {len(paths)} {category} entities...")
 
-        # List of entities that exhibit parsing issues due to inconsistency with other similar pages
-        weapons_blacklist = ["Miquellan Knight's Sword", "Greataxe"]
-        items_blacklist = []
-        spells_blacklist = ["Placidusax's Ruin"]
-        bosses_blacklist = ["Dragonkin Soldier"]
-
-        blacklist = weapons_blacklist + items_blacklist + spells_blacklist + bosses_blacklist
+        blacklist = self.weapons_blacklist + self.items_blacklist + self.spells_blacklist + self.bosses_blacklist
 
         entities = []
-        for idx, endpoint in enumerate(urls):
-            entity_name = endpoint.split('/')[-1].replace('+', ' ')
-            
+        for idx, path in enumerate(paths):
+            entity_name = path.split('/')[-1].replace('+', ' ')
+
             if entity_name in blacklist:
                 continue
 
-            self.log.info(f"Parsing {entity_name} [{idx+1} of {len(urls)}]...")
-            print(endpoint)
-            entity = self.url_to_entity(endpoint, category, force_image_download=False)
+            entity = Entity(entity_name, path, category)
+
             entities.append(entity)
 
         return entities
@@ -91,12 +75,11 @@ class Scraper:
             entities.append(Entity(entity_name, category='Skills', description=description))
         
         return entities
-    
-    def url_to_entity(self, url, category=None, force_image_download=False):
+
+    def scrape_entity(self, entity, force_image_download=False):
         """
         """
-        entity_name = self.convert_token_to_name(url.split("/")[-1])
-        url = URL_WIKI_BASE + url
+        url = URL_WIKI_BASE + entity.path
 
         response = requests.get(url)
         soup = bs(response.text, 'html.parser')
@@ -225,8 +208,12 @@ class Scraper:
         use = ' '.join(use_tokens)
         #print(entity_name)
 
-        return Entity(entity_name, url, category=category, image=image, description=description, location=location, use=use, notes=notes)
-
+        entity.image = image
+        entity.description = description
+        entity.location = location
+        entity.use = use
+        entity.notes = notes
+    
     def get_weapons_urls(self):
         """
         """
@@ -311,7 +298,7 @@ class Scraper:
 
         return list(urls)
     
-    def get_talisman_urls(self):
+    def get_talismans_paths(self):
         """
         """
         response = requests.get(PATH_TALISMANS)
@@ -321,12 +308,14 @@ class Scraper:
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Weapons page
-        urls = []
+        paths = []
         for item in content_block.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
             destination = item.get('href')
-            urls.append(destination)
+            paths.append(destination)
 
-        return urls
+        paths = list(set(paths))    # Unique the values
+
+        return paths
 
     def get_spells_urls(self):
         """
@@ -338,16 +327,16 @@ class Scraper:
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Weapons page
-        urls = []
+        paths = []
         for content in content_block.find_all('div', attrs={'class': 'tabcontent 0-tab tabcurrent'}):
             for item in content.find_all('h4', attrs={'style': 'text-align: center;'}):
                 for link in item.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
                     destination = link.get('href')
-                    urls.append(destination)
+                    paths.append(destination)
 
-        urls = list(set(urls)) # Unique
+        paths = list(set(paths)) # Unique
 
-        return urls
+        return paths
 
     def get_legacy_dungeons_urls(self):
         return Scraper.legacy_dungeons

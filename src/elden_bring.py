@@ -4,6 +4,7 @@ import time
 from enum import Enum
 
 from constants import *
+from objects import *
 from scraper import Scraper
 
 class EntityType(Enum):
@@ -16,6 +17,7 @@ class EntityType(Enum):
     LOCATION = 'Locations'
     ENEMY = 'Creatures and Enemies'
     BOSS = 'Bosses'
+    TALISMAN = 'Talismans'
 
 class EldenBring:
     """
@@ -54,6 +56,7 @@ class EldenBring:
     ]
 
     status_effects = [
+        "Buffs and Debuffs", 
         "Poison", 
         "Scarlet Rot", 
         "Blood Loss", 
@@ -143,6 +146,9 @@ class EldenBring:
     ]
 
     def __init__(self, logging_enabled=True):
+
+        self.prima_materia = dict()
+
         # Create directories if they don't already exist
         if not os.path.exists(LOCAL_CACHE):
             os.mkdir(LOCAL_CACHE)
@@ -206,8 +212,6 @@ class EldenBring:
         """
         urls = self.scraper.get_shields_urls()
         entities = self.scraper.convert_urls_to_entities(urls)
-
-        self.log.info(f"Parsing {len(entities)} Shields...")
         
         for idx, entity in enumerate(entities):
             self.log.info(f"Writing {entity.name} [{idx+1} of {len(entities)}]...")
@@ -264,3 +268,50 @@ class EldenBring:
         """
         urls = self.scraper.get_npcs_urls()
         self.scraper.convert_urls_to_entities(urls, EntityType.NPC)
+    
+    def create_talismans(self, overwrite=True):
+        """
+        """
+        urls = self.scraper.get_talismans_urls()
+        entities = self.scraper.convert_urls_to_entities(urls, EntityType.TALISMAN)
+
+        for idx, entity in enumerate(entities):
+            self.log.info(f"Writing {entity.name} [{idx+1} of {len(entities)}]...")
+            entity.write()
+
+    def prepare_entities(self, category=''):
+        """
+        """
+        self.log.info(f"Preparing {category}...")
+
+        # TODO: Blank category means prepare all... maybe ask the user if this is really desired
+
+        # Get list of URL paths
+        paths = []
+        if category == 'Talismans':
+            paths = self.scraper.get_talismans_paths()
+            
+        entities = self.scraper.convert_paths_to_entities(paths, category) # Only URLs and names at this point
+
+        self.prima_materia[category] = entities
+    
+    def scrape_entities(self, category=''):
+        """
+        """
+        for i, entity in enumerate(self.prima_materia[category]):
+            self.log.info(f"Scraping {entity.name} [{i} of {len(self.prima_materia[category])}]...")
+            self.scraper.scrape_entity(entity)
+
+    def get_entity_names(self, category=''):
+        """
+        """
+        #TODO: Check for invalid categories
+
+        if category not in self.prima_materia:
+            self.prepare_entities(category)
+
+        entity_names = []
+        for entity in self.prima_materia[category]:
+            entity_names.append(entity.name)
+
+        return entity_names
