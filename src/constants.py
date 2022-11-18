@@ -18,6 +18,7 @@ PATH_ARMOR                  = URL_WIKI_BASE + "/Armor"
 PATH_TALISMANS              = URL_WIKI_BASE + "/Talismans"
 PATH_CREATURES_AND_ENEMIES  = URL_WIKI_BASE + "/Creatures+and+Enemies"
 PATH_BOSSES                 = URL_WIKI_BASE + "/Bosses"
+PATH_LEGACY_DUNGEONS        = URL_WIKI_BASE + "/Legacy+Dungeons"
 PATH_LOCATIONS              = URL_WIKI_BASE + "/Locations"
 PATH_NPCS                   = URL_WIKI_BASE + "/NPCs"
 PATH_ITEMS                  = URL_WIKI_BASE + "/Items"  # Not used--item index pages are listed below

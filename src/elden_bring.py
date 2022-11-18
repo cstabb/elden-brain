@@ -7,143 +7,9 @@ from constants import *
 from objects import *
 from scraper import Scraper
 
-class EntityType(Enum):
-    WEAPON = 'Weapons'
-    SHIELD = 'Shields'
-    ITEM = 'Items'
-    NPC = 'NPCs'
-    SPELL = 'Spells'
-    SKILL = 'Skills'
-    LOCATION = 'Locations'
-    ENEMY = 'Creatures and Enemies'
-    BOSS = 'Bosses'
-    TALISMAN = 'Talismans'
-
 class EldenBring:
     """
     """
-
-    classes = [
-        "Hero", 
-        "Bandit", 
-        "Astrologer", 
-        "Warrior", 
-        "Prisoner", 
-        "Confessor", 
-        "Wretch", 
-        "Vagabond", 
-        "Prophet", 
-        "Samurai", 
-    ]
-
-    stats = [
-        "Stats", 
-        "Vigor", 
-        "Mind", 
-        "Endurance", 
-        "Strength", 
-        "Dexterity", 
-        "Intelligence", 
-        "Faith", 
-        "Arcane", 
-        "Discovery", 
-        "FP", 
-        "Poise", 
-        "Robustness", 
-        "Standard Damage", 
-        "Strike Damage", 
-        "Critical Damage", 
-    ]
-
-    status_effects = [
-        "Buffs and Debuffs", 
-        "Poison", 
-        "Scarlet Rot", 
-        "Blood Loss", 
-        "Frostbite", 
-        "Sleep", 
-        "Madness", 
-        "Death Blight", 
-        "Hemorrhage", 
-        "/Hemorrhage", 
-    ]
-
-    spell_type = [
-        "Sorceries", 
-        "Incantations", 
-        "Bestial Incantations", 
-        "Aberrant Sorceries", 
-        "Carian Sorceries", 
-        "Claymen Sorceries", 
-        "Crystalian Sorceries", 
-        "Death Sorceries", 
-        "Full Moon Sorceries", 
-        "Glintstone Sorceries", 
-        "Gravity Sorceries", 
-        "Loretta's Sorceries", 
-        "Magma Sorceries", 
-        "Night Sorceries", 
-        "Primeval Sorceries", 
-        "Cold Sorceries", 
-    ]
-
-    weapon_type = [
-        "Daggers", 
-        "Straight Swords", 
-        "Greatswords", 
-        "Colossal Swords ", 
-        "Thrusting Swords", 
-        "Heavy Thrusting Swords", 
-        "Curved Swords", 
-        "Curved Greatswords", 
-        "Katanas", 
-        "Twinblades", 
-        "Axes", 
-        "Greataxes", 
-        "Hammers", 
-        "Flails", 
-        "Great Hammers", 
-        "Colossal Weapons", 
-        "Spears", 
-        "Great Spears", 
-        "Halberds", 
-        "Reapers", 
-        "Whips", 
-        "Fists", 
-        "Claws", 
-        "Light Bows", 
-        "Bows", 
-        "Greatbows", 
-        "Crossbows", 
-        "Ballistae", 
-        "Glintstone Staffs", 
-        "Sacred Seals", 
-        "Torches", 
-        "Tools", 
-    ]
-
-    shield_type = [
-        "Small Shields", 
-        "Medium Shields", 
-        "Greatshields", 
-    ]
-
-    hide_list = [
-        "Ashes of War", 
-        "Consumables", 
-        "Magic", 
-        "Magic Spells", 
-        "Runes", 
-        "Skills", 
-        "Smithing Stones", 
-        "Somber Smithing Stones", 
-        "Patch Notes", 
-        "Creatures and Enemies", 
-        "New Game Plus", 
-        "Upgrades", 
-        "Crafting Materials", 
-        "Cookbooks", 
-    ]
 
     def __init__(self, logging_enabled=True):
 
@@ -167,6 +33,9 @@ class EldenBring:
             self.log = logging.getLogger('null_logger').addHandler(logging.NullHandler())
 
         self.scraper = Scraper(self.log)
+
+    def __getitem__(self, category):
+         return self.prima_materia[category]
 
     def create_skills(self, overwrite=True):
         """
@@ -194,113 +63,119 @@ class EldenBring:
                 f = open(destination_path + target + '.md', 'w')
                 f.write(HIDDEN_TAG)
                 f.close()
-                time.sleep(0.001)   # Necessary to allow Obsidian time to update with the new file
+                time.sleep(0.001)   # Necessary to allow Obsidian time to recognize the new file
 
-    def create_weapons(self, overwrite=True):
+    def prepare_entity(self, name, category=''):
         """
-        """
-        urls = self.scraper.get_weapons_urls()
-        entities = self.scraper.convert_urls_to_entities(urls)
+        If the exact name of an entity is known, it may be used and the path derived.
 
-        for idx, entity in enumerate(entities):
-            self.log.info(f"Writing {entity.name} [{idx+1} of {len(entities)}]...")
-            entity.write()
-            #time.sleep(0.001)
+        Since applying categories to entities would require keeping lists of ALL entities 
+        (instead of scraping entity names by category) entities created in this way will 
+        be stored in in the 'Unknown' category and write to the same in Obsidian.
 
-    def create_shields(self, overwrite=True):
+        This function is mainly used for debugging; prepare_entities should be used in most cases.
         """
-        """
-        urls = self.scraper.get_shields_urls()
-        entities = self.scraper.convert_urls_to_entities(urls)
-        
-        for idx, entity in enumerate(entities):
-            self.log.info(f"Writing {entity.name} [{idx+1} of {len(entities)}]...")
-            entity.write()
+        self.log.info(f"Preparing {name}...")
 
-    def create_armor(self, overwrite=True):
-        #TODO
-        pass
+        entity = Entity(name, category=category)
 
-    def create_items(self, overwrite=True):
-        """
-        """
-        urls = self.scraper.get_items_urls()
-        self.scraper.convert_urls_to_entities(urls, EntityType.ITEM)
+        entity.derive_path()
 
-    def create_locations(self, overwrite=True):
-        """
-        """
-        urls = self.scraper.get_locations_urls()
-        self.scraper.convert_urls_to_entities(urls, EntityType.LOCATION)
+        if category == '':
+            if 'Unknown' not in self.prima_materia:
+                self.prima_materia['Unknown'] = [entity]
+            else:
+                self.prima_materia['Unknown'].append(entity)
+        else:
+            if category not in self.prima_materia:
+                self.prima_materia[category] = [entity]
+            else:
+                self.prima_materia[category].append(entity)
 
-    def create_legacy_dungeons(self, overwrite=True):
-        """
-        """
-        urls = self.scraper.get_legacy_dungeons_urls()
-        self.scraper.convert_urls_to_entities(urls, EntityType.LOCATION)
+        print(self.prima_materia)
 
-    def create_spells(self, overwrite=True):
+    def prepare_entities(self, category='', limit=None):
         """
-        """
-        urls = self.scraper.get_spells_urls()
-        self.scraper.convert_urls_to_entities(urls, EntityType.SPELL)
+        Create the entity objects for a given category.
 
-    def create_spirit_ashes(self, overwrite=True):
-        #TODO
-        pass
-
-    def create_creatures_and_enemies(self, overwrite=True):
+        TODO: Allow limit and filtering
         """
-        """
-        urls = self.scraper.get_creatures_and_enemies_urls()
-        self.scraper.convert_urls_to_entities(urls, EntityType.ENEMY)
-
-    def create_bosses(self, overwrite=True):
-        """
-        """
-        urls = self.scraper.get_bosses_urls()
-        # print(urls)
-        # print(len(urls))
-        self.scraper.convert_urls_to_entities(urls, EntityType.BOSS)
-
-    def create_npcs(self, overwrite=True):
-        """
-        """
-        urls = self.scraper.get_npcs_urls()
-        self.scraper.convert_urls_to_entities(urls, EntityType.NPC)
-    
-    def create_talismans(self, overwrite=True):
-        """
-        """
-        urls = self.scraper.get_talismans_urls()
-        entities = self.scraper.convert_urls_to_entities(urls, EntityType.TALISMAN)
-
-        for idx, entity in enumerate(entities):
-            self.log.info(f"Writing {entity.name} [{idx+1} of {len(entities)}]...")
-            entity.write()
-
-    def prepare_entities(self, category=''):
-        """
-        """
-        self.log.info(f"Preparing {category}...")
-
-        # TODO: Blank category means prepare all... maybe ask the user if this is really desired
-
-        # Get list of URL paths
-        paths = []
-        if category == 'Talismans':
-            paths = self.scraper.get_talismans_paths()
-            
+        paths = self.scraper.get_paths(category)
+        if limit is not None:
+            paths = paths[0:limit]
+   
         entities = self.scraper.convert_paths_to_entities(paths, category) # Only URLs and names at this point
-
+        print(entities)
         self.prima_materia[category] = entities
-    
+
+    def scrape_entity(self, name, category=''):
+        """
+        """
+        if category == '':
+            # If category isn't known, run through all entities to see if name exists
+            for known_category, entities in self.prima_materia.items():
+                for entity in entities:
+                    if entity.name == name:
+                        self.scraper.scrape_entity(entity)
+        elif category == EntityCategory.SKILLS:
+            self.log.warning(f"")
+        else:
+            for entity in self.prima_materia[category]:
+                if entity.name == name:
+                    
+                    self.log.info(f"Scraping {entity.name}...")
+                    if category == EntityCategory.LEGACY_DUNGEONS:
+                        self.scraper.scrape_legacy_dungeon_entity(entity)
+                    else:
+                        self.scraper.scrape_entity(entity)
+            
     def scrape_entities(self, category=''):
         """
         """
-        for i, entity in enumerate(self.prima_materia[category]):
-            self.log.info(f"Scraping {entity.name} [{i} of {len(self.prima_materia[category])}]...")
+        # print(category)
+        if category == '':
+            for known_category, entities in self.prima_materia.items():
+                if known_category == EntityCategory.SKILLS:
+                    continue
+                self.log.info(f"Scraping {known_category}...")
+                for i, entity in enumerate(entities):
+                    self.log.info(f"Scraping {entity.name} [{i+1} of {len(self.prima_materia[known_category])}]...")
+                    self.scraper.scrape_entity(entity)
+        elif category == EntityCategory.SKILLS:
+            skills_data = self.scraper.scrape_skills_data()
+            for entity in self.prima_materia[EntityCategory.SKILLS]:
+                if entity.name in skills_data:
+                    entity.content = {'Description': skills_data[entity.name]}
+        else:
+            self.log.info(f"Scraping {entity.name} [{i+1} of {len(self.prima_materia[category])}]...")
             self.scraper.scrape_entity(entity)
+
+    def write_entity(self, name, category=''):
+        """
+        """
+        self.log.info(f"Writing {name} to markdown file...")
+
+        if category != '':
+            for entity in self.prima_materia[category]:
+                if entity.name == name:
+                    entity.write()
+        # If category isn't known, run through all entities to see if name exists
+        for known_category, entities in self.prima_materia.items():
+            for entity in entities:
+                if entity.name == name:
+                    entity.write()
+
+    def write_entities(self, category=''):
+        """
+        """
+        self.log.info(f"Writing {category} to markdown files...")
+
+        if category != '':
+            for entity in self.prima_materia[category]:
+                entity.write()
+        else:
+            for i, entity in self.prima_materia.items():
+                entity.write()
 
     def get_entity_names(self, category=''):
         """
@@ -313,5 +188,7 @@ class EldenBring:
         entity_names = []
         for entity in self.prima_materia[category]:
             entity_names.append(entity.name)
+
+        entity_names.sort()
 
         return entity_names

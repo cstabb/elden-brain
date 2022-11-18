@@ -7,20 +7,201 @@ from markdownify import markdownify as md
 from constants import *
 from text_handling import Formatter
 
+classes = [
+    "Hero", 
+    "Bandit", 
+    "Astrologer", 
+    "Warrior", 
+    "Prisoner", 
+    "Confessor", 
+    "Wretch", 
+    "Vagabond", 
+    "Prophet", 
+    "Samurai", 
+]
+
+stats = [
+    "Stats", 
+    "Vigor", 
+    "Mind", 
+    "Endurance", 
+    "Strength", 
+    "Dexterity", 
+    "Intelligence", 
+    "Faith", 
+    "Arcane", 
+    "Discovery", 
+    "FP", 
+    "Poise", 
+    "Robustness", 
+    "Standard Damage", 
+    "Strike Damage", 
+    "Critical Damage", 
+]
+
+status_effects = [
+    "Buffs and Debuffs", 
+    "Poison", 
+    "Scarlet Rot", 
+    "Blood Loss", 
+    "Frostbite", 
+    "Sleep", 
+    "Madness", 
+    "Death Blight", 
+    "Hemorrhage", 
+    "/Hemorrhage", 
+]
+
+spell_type = [
+    "Sorceries", 
+    "Bestial Incantations", 
+    "Blood Incantations", 
+    "Dragon Communion Incantations", 
+    "Dragon Cult Incantations", 
+    "Erdtree Incantations", 
+    "Fire Giant Incantations", 
+    "Fire Monk Incantations", 
+    "Frenzied Flame Incantations", 
+    "Godskin Apostle Incantations", 
+    "Golden Order Incantations", 
+    "Servants of Rot Incantations", 
+    "Two Fingers Incantations", 
+    #------------------------------
+    "Incantations", 
+    "Aberrant Sorceries", 
+    "Carian Sorceries", 
+    "Claymen Sorceries", 
+    "Crystalian Sorceries", 
+    "Death Sorceries", 
+    "Full Moon Sorceries", 
+    "Glintstone Sorceries", 
+    "Gravity Sorceries", 
+    "Loretta's Sorceries", 
+    "Magma Sorceries", 
+    "Night Sorceries", 
+    "Primeval Sorceries", 
+    "Cold Sorceries", 
+]
+
+weapon_type = [
+    "Daggers", 
+    "Straight Swords", 
+    "Greatswords", 
+    "Colossal Swords ", 
+    "Thrusting Swords", 
+    "Heavy Thrusting Swords", 
+    "Curved Swords", 
+    "Curved Greatswords", 
+    "Katanas", 
+    "Twinblades", 
+    "Axes", 
+    "Greataxes", 
+    "Hammers", 
+    "Flails", 
+    "Great Hammers", 
+    "Colossal Weapons", 
+    "Spears", 
+    "Great Spears", 
+    "Halberds", 
+    "Reapers", 
+    "Whips", 
+    "Fists", 
+    "Claws", 
+    "Light Bows", 
+    "Bows", 
+    "Greatbows", 
+    "Crossbows", 
+    "Ballistae", 
+    "Glintstone Staffs", 
+    "Sacred Seals", 
+    "Torches", 
+    "Tools", 
+]
+
+shield_type = [
+    "Small Shields", 
+    "Medium Shields", 
+    "Greatshields", 
+]
+
+hide_list = [
+    "Ashes of War", 
+    "Consumables", 
+    "Magic", 
+    "Magic Spells", 
+    "Runes", 
+    "Skills", 
+    "Smithing Stones", 
+    "Somber Smithing Stones", 
+    "Patch Notes", 
+    "Creatures and Enemies", 
+    "New Game Plus", 
+    "Upgrades", 
+    "Crafting Materials", 
+    "Cookbooks", 
+    "Builds", 
+    "Parrying", 
+    "Sites of Grace", 
+]
+
+# List of entities that exhibit parsing issues due to inconsistency with other similar pages
+weapons_blacklist = ["Miquellan Knight's Sword", "Greataxe"]
+items_blacklist = []
+spells_blacklist = ["Placidusax's Ruin"]
+bosses_blacklist = ["Dragonkin Soldier"]
+
+# The Legacy Dungeons page is different enough, and there few enough instances, that these can be hardcoded here
+legacy_dungeons = [
+    "/Leyndell+Royal+Capital+(Legacy+Dungeon)", 
+    "/Stormveil+Castle", 
+    "/Raya+Lucaria+Academy",  
+    "/Volcano+Manor", 
+    "/Miquella's+Haligtree",
+    "/Elphael,+Brace+of+the+Haligtree", 
+    "/Crumbling+Farum+Azula", 
+]
+
+class EntityCategory(Enum):
+    BOSSES = 'Bosses'
+    ENEMIES = 'Creatures and Enemies'
+    ITEMS = 'Items'
+    LEGACY_DUNGEONS = 'Legacy Dungeons'
+    LOCATIONS = 'Locations'
+    NPCS = 'NPCs'
+    SHIELDS = 'Shields'
+    SKILLS = 'Skills'
+    SPELLS = 'Spells'
+    TALISMANS = 'Talismans'
+    WEAPONS = 'Weapons'
+
+category_paths = {
+    EntityCategory.BOSSES: PATH_BOSSES,
+    EntityCategory.ENEMIES: PATH_CREATURES_AND_ENEMIES,
+    EntityCategory.ITEMS: PATH_ITEMS,
+    EntityCategory.LEGACY_DUNGEONS: PATH_LEGACY_DUNGEONS,
+    EntityCategory.LOCATIONS: PATH_LOCATIONS,
+    EntityCategory.NPCS: PATH_NPCS,
+    EntityCategory.SHIELDS: PATH_SHIELDS,
+    EntityCategory.SKILLS: PATH_SKILLS,
+    EntityCategory.SPELLS: PATH_SPELLS,
+    EntityCategory.TALISMANS: PATH_TALISMANS, 
+}
+
 class Entity:
-    def __init__(self, name, path='', category=None, image=None, header='', description='', location='', use='', notes=''):
+    def __init__(self, name, path='', category=None, image=None, content=''):
         self.name = name
         self.path = path
         self.category = category
         self.image = image
-        #TODO: assert type is EntityType before assignment
-        self.header = self.format_links(md(header, strip=["img"])) # Initial description paragraph
-        self.description = self.format_links(md(description, strip=["img"]))
-        self.location = self.format_links(md(location, strip=["img"]))
-        self.use = self.format_links(md(use, strip=["img"]))
-        self.notes = self.format_links(md(notes, strip=["img"]))
+        self.content = content
 
     def __str__(self):
+        name_f_string = f"\n{self.name}\n\
+========\n\n"
+
+        content_f_string = f"{self.content}"
+
+        """
         name_f_string = f"\n{self.name}\n\
 ========\n\n"
 
@@ -45,38 +226,26 @@ class Entity:
             notes_f_string = f"NOTES & TIPS\n\
 --------\n\
 {self.notes}\n"
+"""
 
-        return name_f_string + description_f_string + location_f_string + use_f_string + notes_f_string
+        return name_f_string + content_f_string
+    
+    def __setattr__(self, name, value):
+        if name == "content":
+            markdown = md(value)
+            markdown = Formatter.remove_nbsp(markdown)
+            markdown = Formatter.remove_other_notes_bullet(markdown)
+            markdown = Formatter.reformat_links(markdown)
 
-    def perform_targeted_corrections(self, text):
-        correction = text
+            markdown = Formatter.remove_extra_spaces(markdown)
 
-        # Would use match here if Pylance recognized my interpreter as being newer than Python 3.10...
-        if self.category == 'Weapons':
-            if self.name == "Alabaster Lord's Sword":
-                correction = re.sub(r"Alabaster Lords' Pull", r"Alabaster Lord's Pull", text)
-            elif self.name == "Parrying Dagger":
-                correction = re.sub(r"PATCHES BELL BEARING", r"Patches' Bell Bearing", text)
-            elif self.name == "Bloodstained Dagger":
-                correction = re.sub(r"#gsc\.tab=0", r"", text)
-            elif self.name == "Royal Greatsword":
-                correction = re.sub(r"\/\/Strength", r"Strength", text)
-            elif self.name == "Vulgar Militia Saw":
-                correction = re.sub(r"\+ \[Example farming route\]\(\/file\/Elden\-Ring\/vulgar\_militia\_saw\.png \"Example farming route\"\)", r"", text)
-            elif self.name == "Flowing Curved Sword":
-                correction = re.sub(r" See it on the +\.", r"", text)
-            elif self.name == "Nox Flowing Hammer":
-                correction = re.sub(r"\[\[(Flowing Form) \(Nox Flowing Hammer\)", r"[[\1", text)
-            # elif self.name == "Bolt of Gransax":
-            #     correction = re.sub(r"\[\[(Leyndell Royal Capital) \(Legacy Dungeon\)#[^\]]+\]\]", r"[[\1|\1]]", text)
-            elif self.name == "Torch":
-                #[\'\,\"\/\(\)\+ \.\|\[\]#\*\w\&\n]*
-                correction = re.sub(r" ### Elden Ring Torch Moveset[\'\,\"\/\(\)\+ \.\|\[\]#\*\w\&\n]*", r"", text)
-                #correction = re.sub(r"\n\n", r"\n", correction)
-        # print(text)
-        # print('-----------------')
-        # print(correction)
-        return correction
+            markdown = Formatter.perform_targeted_corrections(self.name, markdown)
+            self.__dict__[name] = markdown
+        else:
+            self.__dict__[name] = value
+
+    def derive_path(self):
+        self.path = '/' + self.name.replace(' ', '+')
 
     def format_links(self, md_text):
         md_text_whitespace_fixed = md_text.replace(u'\xa0', ' ').strip() # Remove leading and trailing whitespace, and non-breaking spaces (&nbsp;)
@@ -133,24 +302,30 @@ class Entity:
         image = ""
         if self.image is not None:
             image = "![["+self.image.name+"]]\n"
+
+        content_md_string = ""
+        if self.content != "":
+            content_md_string = f"{self.content}\n\n"
         
-        description_md_string = ""
-        if self.description != "":
-            description_md_string = f"## Description\n\n{self.description}\n\n"
+        # description_md_string = ""
+        # if self.description != "":
+        #     description_md_string = f"## Description\n\n{self.description}\n\n"
 
-        location_md_string = ""
-        if self.location != "":
-            location_md_string = f"## Location\n\n{self.location}\n\n"
+        # location_md_string = ""
+        # if self.location != "":
+        #     location_md_string = f"## Location\n\n{self.location}\n\n"
 
-        use_md_string = ""
-        if self.use != "":
-            use_md_string = f"## Use\n\n{self.use}\n\n"
+        # use_md_string = ""
+        # if self.use != "":
+        #     use_md_string = f"## Use\n\n{self.use}\n\n"
 
-        notes_md_string = ""
-        if self.notes != "":
-            notes_md_string = f"## Notes & Tips\n\n{self.notes}\n\n"
+        # notes_md_string = ""
+        # if self.notes != "":
+        #     notes_md_string = f"## Notes & Tips\n\n{self.notes}\n\n"
 
-        output_str = tags_md_string + image + description_md_string + location_md_string + use_md_string + notes_md_string
+        #print(self.content)
+
+        output_str = tags_md_string + image + content_md_string
         #print(output_str)
         f.write(output_str)
         f.close()
@@ -184,7 +359,5 @@ class Dialogue:
         return f'{self.name}\n{self.description}'
         
 class NPC(Entity):
-    def __init__(self, name, url='', type='', header='', notes='', location='', dialogue=''):
-        super().__init__(url, name, type, header, notes)
-        self.location = location
-        self.dialogue = dialogue
+    def __init__(self, name, url='', category='', content=''):
+        super().__init__(url, name, category=category, content=content)

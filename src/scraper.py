@@ -11,23 +11,6 @@ class Scraper:
     Collection of functions to parse HTML pages into entities.
     """
 
-    # List of entities that exhibit parsing issues due to inconsistency with other similar pages
-    weapons_blacklist = ["Miquellan Knight's Sword", "Greataxe"]
-    items_blacklist = []
-    spells_blacklist = ["Placidusax's Ruin"]
-    bosses_blacklist = ["Dragonkin Soldier"]
-
-    # The Legacy Dungeons page is different enough, and there few enough instances, that these can be hardcoded here
-    _legacy_dungeons = [
-        "/Leyndell+Royal+Capital+(Legacy+Dungeon)", 
-        "/Stormveil+Castle", 
-        "/Raya+Lucaria+Academy",  
-        "/Volcano+Manor", 
-        "/Miquella's+Haligtree",
-        "/Elphael,+Brace+of+the+Haligtree", 
-        "/Crumbling+Farum+Azula", 
-    ]
-
     def __init__(self, logger):
         self.log = logger
 
@@ -37,7 +20,7 @@ class Scraper:
         """
         self.log.info(f"Creating {len(paths)} {category} entities...")
 
-        blacklist = self.weapons_blacklist + self.items_blacklist + self.spells_blacklist + self.bosses_blacklist
+        blacklist = weapons_blacklist + items_blacklist + spells_blacklist + bosses_blacklist
 
         entities = []
         for idx, path in enumerate(paths):
@@ -52,39 +35,71 @@ class Scraper:
 
         return entities
 
-    def get_skill_entities(self):
+    def scrape_skills_data(self):
         """
         Build a list of entities from the table on the Skills page
 
         This table contains descriptions, so visiting individual Skill pages is not necessary
         """
-        url = PATH_SKILLS
-        response = requests.get(url)
+        response = requests.get(PATH_SKILLS)
         soup = bs(response.text, 'html.parser')
 
         table_body = soup.find('tbody')
 
-        entities = []
+        skills_data = {}
         for row in table_body.find_all('tr'):
             cells = row.find_all('td')
             cells = [ele.text.strip() for ele in cells]
-            
-            entity_name = cells[0]
+            name = cells[0]
             description = cells[5]
             #print(f"{entity_name}")
-            entities.append(Entity(entity_name, category='Skills', description=description))
+            skills_data[name] = description
         
-        return entities
+        return skills_data
+
+    def scrape_legacy_dungeon_entity(self, entity, force_image_download=False):
+        """
+        """
+        target_section_names = [
+            "NPCs", 
+            "Bosses", 
+            "Items", 
+            "Enemies"
+        ]
+
+        response = requests.get(PATH_LEGACY_DUNGEONS)
+        soup = bs(response.text, 'html.parser')
+
+        contents = {}
+        this_section = ""
+        for col in soup.find_all('div', attrs={'class': 'col-sm-4 col-md-3 col-md-push-9'}):
+            for section in col.find_all(['h3', 'a']):
+                if section.name == 'h3':
+                    for section_name in target_section_names:
+                        if section_name in section.string:
+                            # Start new section
+                            this_section = section_name
+                            contents[this_section] = []
+                            #print(f"{section.string}\n---------------")
+                elif section.name == 'a':
+                    link = section.get('href')
+                    if this_section != '':
+                        contents[this_section].append(link)
+                    #print(link)
+        
+        entity.contents = contents
 
     def scrape_entity(self, entity, force_image_download=False):
         """
         """
-        url = URL_WIKI_BASE + entity.path
-
-        response = requests.get(url)
+        if entity.category == 'Legacy Dungeons':
+            self.scrape_legacy_dungeon(entity, force_image_download)
+            return
+        
+        response = requests.get(URL_WIKI_BASE + entity.path)
         soup = bs(response.text, 'html.parser')
 
-        content_block = soup.find('div', attrs={"id": "wiki-content-block"})
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Infobox
         infobox = content_block.find('div', attrs={'class', 'infobox'})
@@ -99,177 +114,128 @@ class Scraper:
         image_data = requests.get(image_url).content
         image = Image(image_data, image_name)
 
-        if force_image_download:
-            image.write()
-        elif ~os.path.isfile(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + image_name):
-            # Download if file does not already exist
+        if force_image_download or not os.path.isfile(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + image_name):
             image.write()
 
         # Throw out all other img tags
-        all_img_tags = content_block.img
-        all_img_tags.decompose()
-
-        description = ''
-        for lineleft in content_block.find_all('div', attrs={'class', 'lineleft'}):
-            # Get description
-            paragraphs = lineleft.find_all('em')
-            if len(paragraphs) == 0:
-                continue
-            #print(paragraphs)
-            description_tokens = []
-            for paragraph in paragraphs:
-                #print("before: {}", paragraph)
-                paragraph_text = paragraph.get_text(separator="\n").strip()
-                #print("after: {}", paragraph_text)
-                description_tokens.append(paragraph_text)
-            description = "\n\n".join(description_tokens)
-
-        mode = ''
-        location_tokens = []
-        drops_tokens = []
-        notes_tokens = []
-        use_tokens = []
-        moveset_tokens = []
-        ashes_of_war_tokens = []
-        upgrades_tokens = []
-        # Walk the block for the information
-        # Recursive=False is necessary to avoid repeat nested tags
-        for element in content_block.find_all(["h3", "p","ul"], recursive=False):
-            #print("ELEMENT = ", str(element))
-            element_str = str(element).replace(u'\xa0', ' ').strip()
-            #print("ELEMENT\n------------" + element_str)
-            # Set Mode
-            # This works by dint of the first element always being this string (guaranteed?)
-            if '<h3 class="bonfire">where to find' in element_str.lower():
-                mode = 'LOCATION'
-            elif 'Drops</h3>' in element_str.lower():
-                mode = 'DROPS'
-            elif 'tips</h3>' in element_str.lower():
-                # print("MODE SET TO NOTES_AND_TIPS")
-                mode = 'NOTES_AND_TIPS'
-            elif 'use</h3>' in element_str.lower():
-                mode = 'USE'
-            elif 'click below for a list of all possible ashes of war that can be applied to' in element_str.lower():
-                mode = 'ASHES_OF_WAR'
-            #'<h3 class="bonfire">Elden Ring Torch Moveset'
-            elif '<h3 class="bonfire">moveset' in element_str.lower():
-                mode = 'MOVESET'
-            elif 'upgrades in elden ring</h3>' in element_str.lower():
-                print("=== MODE SWITCHED TO UPGRADES ===")
-                mode = 'UPGRADES'
-
-            #print(f"MODE = {mode}\n=================\n{element_str}\n^^^^^^^^^^^^^^^^\n")
-
-            # Append to section list depending on current mode
-            if mode == 'LOCATION':
-                location_tokens.append(str(element))
-            if mode == 'DROPS':
-                drops_tokens.append(str(element))
-            elif mode == 'NOTES_AND_TIPS':
-                notes_tokens.append(str(element))
-            elif mode == 'USE':
-                use_tokens.append(str(element))
-            elif mode == 'ASHES_OF_WAR':
-                #print(mode)
-                ashes_of_war_tokens.append(str(element))
-            elif mode == 'MOVESET':
-                moveset_tokens.append(str(element))
-            elif mode == 'UPGRADES':
-                upgrades_tokens.append(str(element))
+        for img in content_block("img"):
+            img.decompose()
         
-        # Vagaries of the Notes & Tips section--
-        # - Remove paragraphs
-        # - Drop last two elements
-        #notes_tokens = notes_tokens[1:-1]
-        # if entity_type == EntityType.WEAPON:
-        #     notes_tokens = list(filter(lambda c: c[0:2] != '<p', notes_tokens))[1:-2]
+        # Get description
+        description = ""
+        for line in content_block.find_all('em'):
+            description += str(line) + "<br><br>"
+
+        # Drop these sections
+        sections_to_drop = [
+            "Moveset", 
+            "Upgrades", 
+        ]
+
+        contents = {}
+
+        for col in content_block.find_all('h3', attrs={'class': 'bonfire'}):
+            #print(f"COLUMN: {str(col)}")
+            this_section = str(col)
+            contents[this_section] = ""
+
+            for section in col.find_next_siblings(['h3', 'ul']):
+                # print(f"SECTION: {section.name}")
+                if section.name == 'h3':
+                    break
+                else:
+                    contents[this_section] += str(section)
+
+        # print(f"BEFORE\n\n{contents}")
+
+        # Drop the undesirable sections from contents
+        keys_to_drop = []
+        for key in contents:
+            for drop_string in sections_to_drop:
+                if re.search(drop_string, key):
+                    keys_to_drop.append(key)
+
+        for key in keys_to_drop:
+            del contents[key]
         
-        # Vagaries of the Use section--
-        # - Drop last element
-        use_tokens = use_tokens[1:-1]
+        # print(f"AFTER\n\n{contents}")
 
-        # Vagaries of the Location section--
-        # - Drop last element
-        location_tokens = location_tokens[1:-1]
+        headers = {
+            '<h3 class="bonfire">Where to [F|f]ind[^<]+<\/h3>': "## Location\n\n",
+            '<h3 class="bonfire">.+Notes[^<]+<\/h3>':           "## Notes\n\n", 
+        }
+        
+        # Build a string from contents while replacing headers
+        # Begin with the description
+        contents_string = description
+        for key, val in contents.items():
+            header = key
+            for header_regex, remap in headers.items():
+                if re.search(header_regex, key):
+                    header = remap
 
-        #print(location_tokens)
-        #print('\n'.join(map(str,location_tokens)))
-        #print('\n\n')  
-        #print(notes_tokens)
-        #print(ashes_of_war_tokens)
-        #print('\n'.join(map(str,notes_tokens)))
+            contents_string += header + val
 
-        #print(md(''.join(location_tokens)))
-
-        #s.replace(u'\xa0', ' ')
-        # Create Entity parts
-        location = ' '.join(location_tokens)#.encode("ascii", "ignore")
-        notes = ' '.join(notes_tokens)#.encode("ascii", "ignore")
-        use = ' '.join(use_tokens)
-        #print(entity_name)
+        #print(md(contents_string))
 
         entity.image = image
-        entity.description = description
-        entity.location = location
-        entity.use = use
-        entity.notes = notes
-    
-    def get_weapons_urls(self):
+        entity.content = contents_string
+
+    def get_weapons_paths(self):
         """
         """
         response = requests.get(PATH_WEAPONS)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Weapons page
-        urls = []
+        paths = []
         for item in content_block.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
             destination = item.get('href')
-            urls.append(destination)
+            paths.append(destination)
 
-        return urls
+        paths = list(set(paths)) # Unique
 
-    def get_shields_urls(self):
+        return paths
+
+    def get_shields_paths(self):
         """
         """
         response = requests.get(PATH_SHIELDS)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Weapons page
-        urls = []
+        paths = []
         for item in content_block.find_all('h4'):
             for link in item.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
-                print(link)
+                #print(link)
                 destination = link.get('href')
-                urls.append(destination)
+                paths.append(destination)
 
-        urls = list(set(urls)) # Unique
+        paths = list(set(paths)) # Unique
 
-        return urls
+        return paths
 
-    def get_spirit_ashes_urls(self):
+    def get_spirit_ashes_paths(self):
         """
         """
         response = requests.get(PATH_SPIRIT_ASHES)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Weapons page
-        urls = []
+        paths = []
         for item in content_block.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
             destination = item.get('href')
-            urls.append(destination)
+            paths.append(destination)
 
-        return urls
+        return paths
 
-    def get_items_urls(self):
+    def get_items_paths(self):
         """
         Get all Items URLS.
 
@@ -277,32 +243,30 @@ class Scraper:
         to account for all items.
         """
         response = requests.get(PATH_ITEMS)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Weapons page
-        urls = []
+        paths = []
         for item in content_block.find_all('a', attrs={'class': 'wiki_link wiki_tooltip'}):
             destination = item.get('href')
-            urls.append(destination)
+            paths.append(destination)
         
-        urls = set(urls)    # Unique the values
+        paths = set(paths)    # Unique the values
         
         exclude = {
             "/Interactive+map?id=4605&lat=-93.653126&lng=115.069298&zoom=8&code=mapA",
         }
 
-        urls = urls - exclude   # drop Legacy Dungeons from list
+        paths = paths - exclude   # drop Legacy Dungeons from list
 
-        return list(urls)
+        return list(paths)
     
     def get_talismans_paths(self):
         """
         """
         response = requests.get(PATH_TALISMANS)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
@@ -317,11 +281,10 @@ class Scraper:
 
         return paths
 
-    def get_spells_urls(self):
+    def get_spells_paths(self):
         """
         """
         response = requests.get(PATH_SPELLS)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
@@ -338,143 +301,114 @@ class Scraper:
 
         return paths
 
-    def get_legacy_dungeons_urls(self):
-        return Scraper.legacy_dungeons
+    def get_legacy_dungeons_paths(self):
+        #print(f"===========LEGACY DUNGEONS\n{self.legacy_dungeons}")
+        return self.legacy_dungeons
 
-    def get_locations_urls(self):
+    def get_locations_paths(self):
         """
         """
         response = requests.get(PATH_LOCATIONS)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Locations page
-        urls = []
+        paths = []
         for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'row'})):
             for link in row.find_all('a', attrs={'class': 'wiki_link'}):
                 destination = link.get('href')
-                urls.append(destination)
+                paths.append(destination)
 
-        urls = urls[0:-6]   # Last several elements contain throwaway urls
+        paths = paths[0:-6]   # Last several elements contain throwaway urls
         
-        urls = set(urls)    # Unique the values
-        print(Scraper.legacy_dungeons)
+        paths = set(paths)    # Unique the values
+        paths = paths.append("/Three+Sisters")    # Add in anything missing
+        #print(Scraper.legacy_dungeons)
         exclude =  set(Scraper.legacy_dungeons + ["/Legacy+Dungeons"])
 
-        urls = urls - exclude   # drop Legacy Dungeons from list
+        paths = paths - exclude   # drop Legacy Dungeons from list
 
-        return list(urls)
-
-    def get_locations_urls(self):
-        """
-        """
-        response = requests.get(PATH_LOCATIONS)
-
-        soup = bs(response.text, 'html.parser')
-
-        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
-
-        # Get all entities from the main Locations page
-        urls = []
-        for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'row'})):
-            for link in row.find_all('a', attrs={'class': 'wiki_link'}):
-                destination = link.get('href')
-                urls.append(destination)
-
-        urls = urls[0:-6]   # Last several elements contain throwaway urls
-        
-        urls = set(urls)    # Unique the values
-        print(Scraper.legacy_dungeons)
-        exclude =  set(Scraper.legacy_dungeons + ["/Legacy+Dungeons"])
-
-        urls = urls - exclude   # drop Legacy Dungeons from list
-
-        return list(urls)
+        return list(paths)
     
-    def get_bosses_urls(self):
+    def get_bosses_paths(self):
         """
         """
         response = requests.get(PATH_BOSSES)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Locations page
-        urls = []
+        paths = []
         for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'tabcontent 0-tab tabcurrent'})):
             for line in row.find_all('li'):
             # for link in row.find_all('a', attrs={'class': 'wiki_link'}):
                 destination = line.a.get('href')
-                urls.append(destination)
+                paths.append(destination)
 
-        return urls
+        return paths
 
-    def get_armor_urls(self):
+    def get_armor_paths(self):
         """
         """
         response = requests.get(PATH_ARMOR)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Locations page
-        urls = []
+        paths = []
         
         #TODO
 
-        return urls
+        return paths
 
-    def get_creatures_and_enemies_urls(self):
+    def get_creatures_and_enemies_paths(self):
         """
         """
         response = requests.get(PATH_CREATURES_AND_ENEMIES)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Locations page
-        urls = []
+        paths = []
         # for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'row'})):
         for idx, content in enumerate(content_block.find_all('div', attrs={'class': 'tabcontent 1-tab'})):
             for link in content.find_all('a', attrs={'class': 'wiki_link'}):
                 #print(link)
                 destination = link.get('href')
                 print(destination)
-                urls.append(destination)
+                paths.append(destination)
         
-        urls = set(urls)    # Unique the values
+        paths = set(paths)    # Unique the values
         
         exclude = {
             "/NPC+Invaders", 
         }
 
-        urls = urls - exclude   # drop Legacy Dungeons from list
+        paths = paths - exclude   # drop Legacy Dungeons from list
         
-        return list(urls)
+        return list(paths)
 
-    def get_npcs_urls(self):
+    def get_npcs_paths(self):
         """
         """
         response = requests.get(PATH_NPCS)
-
         soup = bs(response.text, 'html.parser')
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
         # Get all entities from the main Locations page
-        urls = []
+        paths = []
         for idx, row in enumerate(content_block.find_all('div', attrs={'id': 'reveal'})):
             for link in row.find_all('a', attrs={'class': 'wiki_link'}):
                 destination = link.get('href')
                 destination = '/' + destination.split('/')[-1]
-                urls.append(destination)
+                paths.append(destination)
 
-        urls = set(urls)    # Unique the values
+        paths = set(paths)    # Unique the values
         
         exclude = {
             "/Isolated+Merchants", 
@@ -482,6 +416,80 @@ class Scraper:
             "/Volcano+Manor+Spirit", 
         }
 
-        urls = urls - exclude   # drop Legacy Dungeons from list
+        paths = paths - exclude   # drop Legacy Dungeons from list
 
-        return list(urls)
+        return list(paths)
+
+    def get_skills_paths(self):
+        """
+        """
+        response = requests.get(PATH_SKILLS)
+        soup = bs(response.text, 'html.parser')
+
+        table_body = soup.find('tbody')
+
+        paths = []
+        for row in table_body.find_all('tr'):
+            for td in row.find('td'):
+                #print(td)
+                try:
+                    path = td.get('href')
+                    paths.append(path)
+                except AttributeError:
+                    pass    # Fail silently on "No Skill" (not a link)
+                #print(path)
+                # print(td.href)
+                # for link in td.find_all('a', attrs={'class': 'wiki_link'}):
+                #     path = link.get('href')
+                #     path = '/' + path.split('/')[-1]
+                #     print(path)
+                    # print(td)
+            # cells = row.find_all('td')
+            # cells = [ele.text.strip() for ele in cells]
+            # entity_name = cells[0]
+            # paths.append(entity_name)
+
+        paths = list(set(paths))    # Unique
+        print(paths)    
+        return paths
+    
+    def get_paths(self, category=''):
+        """
+        """
+        # TODO: Blank category means prepare all... maybe ask the user if this is really desired
+
+        if category == EntityCategory.LEGACY_DUNGEONS:
+            paths = self.get_legacy_dungeons_paths()
+            return paths
+        
+        # response = requests.get(self.category_paths)
+
+        # soup = bs(response.text, 'html.parser')
+
+        # content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        paths = []
+        if category == EntityCategory.BOSSES:
+            paths = self.get_bosses_paths()
+        elif category == EntityCategory.ENEMIES:
+            paths = self.get_creatures_and_enemies_paths()
+        elif category == EntityCategory.ITEMS:
+            paths = self.get_items_paths()
+        elif category == EntityCategory.LEGACY_DUNGEONS:
+            paths = self.get_legacy_dungeons_paths()
+        elif category == EntityCategory.LOCATIONS:
+            paths = self.get_locations_paths()
+        elif category == EntityCategory.NPCS:
+            paths = self.get_npcs_paths()
+        elif category == EntityCategory.SHIELDS:
+            paths = self.get_shields_paths()
+        elif category == EntityCategory.SKILLS:
+            paths = self.get_skills_paths()
+        elif category == EntityCategory.SPELLS:
+            paths = self.get_spells_paths()
+        elif category == EntityCategory.TALISMANS:
+            paths = self.get_talismans_paths()
+        elif category == EntityCategory.WEAPONS:
+            paths = self.get_weapons_paths()
+
+        return paths
