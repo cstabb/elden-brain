@@ -2,6 +2,7 @@ import os
 
 import requests
 from bs4 import BeautifulSoup as bs
+from bs4 import NavigableString, Tag
 
 from constants import *
 from objects import *
@@ -18,7 +19,7 @@ class Scraper:
         """
         Convert a list of URLs into entity objects.
         """
-        self.log.info(f"Creating {len(paths)} {category} entities...")
+        self.log.info(f"Creating {len(paths)} {category.value} entities...")
 
         blacklist = weapons_blacklist + items_blacklist + spells_blacklist + bosses_blacklist
 
@@ -92,6 +93,7 @@ class Scraper:
     def scrape_entity(self, entity, force_image_download=False):
         """
         """
+        #print("SCRAPING")
         if entity.category == 'Legacy Dungeons':
             self.scrape_legacy_dungeon(entity, force_image_download)
             return
@@ -120,11 +122,33 @@ class Scraper:
         # Throw out all other img tags
         for img in content_block("img"):
             img.decompose()
+        # Throw out all span tags
+        for span in content_block("span"):
+            span.decompose()
         
         # Get description
         description = ""
-        for line in content_block.find_all('em'):
-            description += str(line) + "<br><br>"
+        for block in content_block.find_all('div', attrs={'class', 'lineleft'}):
+            # print(block)
+            for paragraph in block.find_all('p'):
+                print(paragraph)
+                ems = paragraph.find_all('em')
+                # print(ems)
+                # print(f"PARAGRAPH === {description}\n\n")
+                for line in ems:
+                    # print(line.contents)
+                    values = [str(x).replace("<em>", "") for x in line.contents]
+                    print(values)
+                    for i, val in enumerate(values):
+                        if val != "<br/>":
+                            values[i] = "<em>"+val+"</em>"
+                    description += ''.join(values)
+                if len(ems) > 0:
+                   description += "<br><br>"
+        # print(f"\n\nDESCRIPTION === \n{description}")
+        description = description.replace("</em><em>", "").replace("</em><br/><em>", "")
+        # description = re.sub(r"<span", r"", description)
+        print(f"\n\nDESCRIPTION === \n{description}")
 
         # Drop these sections
         sections_to_drop = [
@@ -139,14 +163,14 @@ class Scraper:
             this_section = str(col)
             contents[this_section] = ""
 
-            for section in col.find_next_siblings(['h3', 'ul']):
-                # print(f"SECTION: {section.name}")
-                if section.name == 'h3':
+            for section in col.find_next_siblings(['h3', 'ul', 'p']):
+                # print(f"SECTION: {str(section)}")
+                if section.name == 'h3' or "Click below for a list of all possible Ashes of War that can be applied" in str(section):
                     break
                 else:
                     contents[this_section] += str(section)
 
-        # print(f"BEFORE\n\n{contents}")
+        # print(f"FIRST\n\n{contents}")
 
         # Drop the undesirable sections from contents
         keys_to_drop = []
@@ -158,10 +182,12 @@ class Scraper:
         for key in keys_to_drop:
             del contents[key]
         
-        # print(f"AFTER\n\n{contents}")
+        # print(f"SECOND\n\n{contents}")
 
         headers = {
             '<h3 class="bonfire">Where to [F|f]ind[^<]+<\/h3>': "## Location\n\n",
+            '<h3 class=\"bonfire\">.+Location in Elden Ring<\/h3>': "## Location\n\n",
+            '<h3 class=\"bonfire\">.+use in Elden Ring<\/h3>': "## Use\n\n",
             '<h3 class="bonfire">.+Notes[^<]+<\/h3>':           "## Notes\n\n", 
         }
         
@@ -176,7 +202,15 @@ class Scraper:
 
             contents_string += header + val
 
-        #print(md(contents_string))
+        # before = contents_string
+        contents_string = re.sub(r"\<p\>[\s]+\<\/p\>", r"", contents_string)
+        # after = contents_string
+        # if before == after:
+        #     print("HUH?")
+
+        # print(f"THIRD\n\n{contents_string}")
+
+        # print(md(contents_string))
 
         entity.image = image
         entity.content = contents_string
@@ -491,5 +525,7 @@ class Scraper:
             paths = self.get_talismans_paths()
         elif category == EntityCategory.WEAPONS:
             paths = self.get_weapons_paths()
+        
+        paths.sort()
 
         return paths

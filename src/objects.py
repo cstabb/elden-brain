@@ -145,7 +145,7 @@ hide_list = [
 ]
 
 # List of entities that exhibit parsing issues due to inconsistency with other similar pages
-weapons_blacklist = ["Miquellan Knight's Sword", "Greataxe"]
+weapons_blacklist = ["Upgrades", "Miquellan Knight's Sword", "Greataxe"]
 items_blacklist = []
 spells_blacklist = ["Placidusax's Ruin"]
 bosses_blacklist = ["Dragonkin Soldier"]
@@ -233,13 +233,27 @@ class Entity:
     def __setattr__(self, name, value):
         if name == "content":
             markdown = md(value)
+            markdown = Formatter.remove_hemorrhage_links(markdown)
+            markdown = Formatter.remove_video_links(markdown)
+            markdown = Formatter.reformat_map_links(markdown)
+            markdown = Formatter.remove_map_links(markdown)
+
             markdown = Formatter.remove_nbsp(markdown)
+            markdown = Formatter.condense_newlines(markdown)
             markdown = Formatter.remove_other_notes_bullet(markdown)
+
             markdown = Formatter.reformat_links(markdown)
 
             markdown = Formatter.remove_extra_spaces(markdown)
 
+            # Misc
+            markdown = Formatter.unlink_builds(markdown)
+            markdown = Formatter.unlink_special_weaknesses(markdown)
+            markdown = Formatter.redirect_ashofwar_skill_links(markdown)
+
+            # Targeted corrections
             markdown = Formatter.perform_targeted_corrections(self.name, markdown)
+            #print(markdown)
             self.__dict__[name] = markdown
         else:
             self.__dict__[name] = value
@@ -255,17 +269,17 @@ class Entity:
         rx_remove_video_links = re.sub(r"\[Video[^\]]+\]\([^\)]+\)", "", rx_hemorrhage)
 
         # Reformatting
-        rx_map_links = re.sub(r"[\[]+([^\]]+)\]\((\/[I|i]nteractive\+[M|m]ap\?[^\ ]+) \"([^\"]+)\"\)\]*\.*", r"[\1](\1)", rx_remove_video_links) # Fix map links
+        # rx_map_links = re.sub(r"[\[]+([^\]]+)\]\((\/[I|i]nteractive\+[M|m]ap\?[^\ ]+) \"([^\"]+)\"\)\]*\.*", r"[\1](\1)", rx_remove_video_links) # Fix map links
         # Now that all map links are in the same format, remove the generic ones i.e. not those that point toward a specific entity or location ("Elden Ring Map here", "Map Link", etc.)
-        rx_remove_map_links = re.sub(r"\[(Elden Ring Map here|Map Coordinates|Map [Ll]ink|Elden Ring Map( [Ll]ink)*)\]\(\1\)", r"", rx_map_links)
-        rx_links = re.sub(r"\[([^]]+)\]\(\/([^?\[\]]+) \"Elden Ring ([^\[\]]+)\"\)", r"[[\3|\1]]", rx_remove_map_links) # Reformat links
+        # rx_remove_map_links = re.sub(r"\[(Elden Ring Map here|Map Coordinates|Map [Ll]ink|Elden Ring Map( [Ll]ink)*)\]\(\1\)", r"", rx_map_links)
+        # rx_links = re.sub(r"\[([^]]+)\]\(\/([^?\[\]]+) \"Elden Ring ([^\[\]]+)\"\)", r"[[\3|\1]]", rx_remove_map_links) # Reformat links
         
         # Due diligence
-        rx_other_notes = re.sub(r"\* Other notes and player tips go here\.*", r"", rx_links)
-        rx_unlink_builds = re.sub(r"\[\[Builds#[^\|]+\|([^\]]+)\]\]", r"\1", rx_other_notes)
-        rx_special_weaknesses = re.sub(r"\[\[Special Weaknesses#[^\]]+\|([^\]]+)\]\]", r"\1", rx_unlink_builds)
-        rx_ash_of_war_skill_links = re.sub(r"\[\[Ash of War: ", r"[[", rx_special_weaknesses)
-        rx_condense_multispaces = re.sub(r" +", r" ", rx_ash_of_war_skill_links) # Condense multiple spaces
+        # rx_other_notes = re.sub(r"\* Other notes and player tips go here\.*", r"", rx_links)
+        # rx_unlink_builds = re.sub(r"\[\[Builds#[^\|]+\|([^\]]+)\]\]", r"\1", rx_other_notes)
+        # rx_special_weaknesses = re.sub(r"\[\[Special Weaknesses#[^\]]+\|([^\]]+)\]\]", r"\1", rx_unlink_builds)
+        # rx_ash_of_war_skill_links = re.sub(r"\[\[Ash of War: ", r"[[", rx_special_weaknesses)
+        # rx_condense_multispaces = re.sub(r" +", r" ", rx_ash_of_war_skill_links) # Condense multiple spaces
 
         corrections_applied = self.perform_targeted_corrections(rx_condense_multispaces)
 

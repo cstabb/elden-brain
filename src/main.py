@@ -7,9 +7,52 @@ def main():
 
     eb = EldenBring()
 
-    eb.prepare_entity('Dagger', EntityCategory.WEAPONS)
-    eb.scrape_entity('Dagger')
-    eb.write_entity('Dagger')
+    # eb.scrape_entities(EntityCategory.WEAPONS, write=True)
+    #eb.write_entities(EntityCategory.WEAPONS)
+
+    # Examples - Extra <em>s getting into Description
+    # eb.scrape_entity("Academy Glintstone Staff", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Albinauric Staff", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Azur's Glintstone Staff", EntityCategory.WEAPONS, True)
+
+    # Examples - Last line of Description not parsed correctly
+    # eb.scrape_entity("Battle Hammer", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Beast-Repellent Torch", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Beastman's Cleaver", EntityCategory.WEAPONS, True)
+
+    # Example - <em> in the middle of the Description, after the G in "Given"
+    # eb.scrape_entity("Banished Knight's Greatsword", EntityCategory.WEAPONS, True)
+    eb.scrape_entity("Alabaster Lord's Sword", EntityCategory.WEAPONS, True)
+
+    # Example - Malformed link
+    # eb.scrape_entity("Black Knife", EntityCategory.WEAPONS, True)
+
+    # Example - Last line of Description is not italicized
+    # eb.scrape_entity("Battle Axe", EntityCategory.WEAPONS, True)
+
+    # eb.scrape_entity("Wraith Calling Bell", EntityCategory.WEAPONS, True)
+
+    # eb.scrape_entity("Wing of Astel", EntityCategory.WEAPONS, True)
+
+    # eb.scrape_entity("Varre's Bouquet", EntityCategory.WEAPONS, True)
+
+    # eb.scrape_entity("Urumi", EntityCategory.WEAPONS, True)
+
+    # eb.scrape_entity("Troll's Golden Sword", EntityCategory.WEAPONS, True)
+
+    # eb.scrape_entity("Troll Knight's Sword", EntityCategory.WEAPONS, True)
+
+    # eb.scrape_entity("Arbalest", EntityCategory.WEAPONS, True)
+
+    # Example - Everything after Description truncated
+    # eb.scrape_entity("Black Bow", EntityCategory.WEAPONS, True)
+
+    # Example - Get cut off either in the middle of the Description, or everything after is truncated
+    # eb.scrape_entity("Bastard's Stars", EntityCategory.WEAPONS, write=True)
+
+    # eb.prepare_entity('Dagger', EntityCategory.WEAPONS)
+    # eb.scrape_entity('Dagger', EntityCategory.WEAPONS)
+    # eb.write_entity('Dagger')
     #print(eb[EntityCategory.WEAPONS][0])
 
     # logging.basicConfig(level=os.environ.get('LOGLEVEL', 'INFO'))

@@ -3,4 +3,5 @@
 /cache/*
 /.vscode
 /env
+/tests
 elden_bring.code-workspace

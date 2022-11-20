@@ -65,7 +65,7 @@ class EldenBring:
                 f.close()
                 time.sleep(0.001)   # Necessary to allow Obsidian time to recognize the new file
 
-    def prepare_entity(self, name, category=''):
+    def _prepare_entity(self, name, category=''):
         """
         If the exact name of an entity is known, it may be used and the path derived.
 
@@ -94,29 +94,30 @@ class EldenBring:
 
         print(self.prima_materia)
 
-    def prepare_entities(self, category='', limit=None):
+    def _prepare_entities(self, category=''):
         """
         Create the entity objects for a given category.
-
-        TODO: Allow limit and filtering
         """
         paths = self.scraper.get_paths(category)
-        if limit is not None:
-            paths = paths[0:limit]
-   
+        print(paths)
         entities = self.scraper.convert_paths_to_entities(paths, category) # Only URLs and names at this point
-        print(entities)
+        
         self.prima_materia[category] = entities
 
-    def scrape_entity(self, name, category=''):
+    def scrape_entity(self, name, category='', write=False):
         """
         """
+        self._prepare_entity(name, category)
+        #print(len(self.prima_materia[category]))
+
         if category == '':
             # If category isn't known, run through all entities to see if name exists
             for known_category, entities in self.prima_materia.items():
                 for entity in entities:
                     if entity.name == name:
                         self.scraper.scrape_entity(entity)
+                        if write:
+                            entity.write()
         elif category == EntityCategory.SKILLS:
             self.log.warning(f"")
         else:
@@ -128,11 +129,15 @@ class EldenBring:
                         self.scraper.scrape_legacy_dungeon_entity(entity)
                     else:
                         self.scraper.scrape_entity(entity)
+
+                    if write:
+                        entity.write()
             
-    def scrape_entities(self, category=''):
+    def scrape_entities(self, category='', write=False):
         """
         """
-        # print(category)
+        self._prepare_entities(category)
+
         if category == '':
             for known_category, entities in self.prima_materia.items():
                 if known_category == EntityCategory.SKILLS:
@@ -141,14 +146,21 @@ class EldenBring:
                 for i, entity in enumerate(entities):
                     self.log.info(f"Scraping {entity.name} [{i+1} of {len(self.prima_materia[known_category])}]...")
                     self.scraper.scrape_entity(entity)
+                    if write:
+                        entity.write()
         elif category == EntityCategory.SKILLS:
             skills_data = self.scraper.scrape_skills_data()
             for entity in self.prima_materia[EntityCategory.SKILLS]:
                 if entity.name in skills_data:
                     entity.content = {'Description': skills_data[entity.name]}
+                if write:
+                    entity.write()
         else:
-            self.log.info(f"Scraping {entity.name} [{i+1} of {len(self.prima_materia[category])}]...")
-            self.scraper.scrape_entity(entity)
+            for i, entity in enumerate(self.prima_materia[category]):
+                self.log.info(f"Scraping {entity.name} [{i+1} of {len(self.prima_materia[category])}]...")
+                self.scraper.scrape_entity(entity)
+                if write:
+                    entity.write()
 
     def write_entity(self, name, category=''):
         """
