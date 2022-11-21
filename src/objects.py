@@ -34,9 +34,16 @@ stats = [
     "FP", 
     "Poise", 
     "Robustness", 
+    "Immunity", 
     "Standard Damage", 
     "Strike Damage", 
+    "Pierce Damage", 
+    "Slash Damage", 
     "Critical Damage", 
+    "Lightning Damage", 
+    "Holy Damage", 
+    "Fire Damage", 
+    "damage types", 
 ]
 
 status_effects = [
@@ -48,8 +55,47 @@ status_effects = [
     "Sleep", 
     "Madness", 
     "Death Blight", 
+    "Instant Death", 
     "Hemorrhage", 
     "/Hemorrhage", 
+]
+
+items_to_hide = [
+    "Ghost Glovewort (1)", 
+    "Ghost Glovewort (2)", 
+    "Ghost Glovewort (3)", 
+    "Ghost Glovewort (4)", 
+    "Ghost Glovewort (5)", 
+    "Ghost Glovewort (6)", 
+    "Ghost Glovewort (7)", 
+    "Ghost Glovewort (8)", 
+    "Ghost Glovewort (9)", 
+    "Grave Glovewort (1)", 
+    "Grave Glovewort (2)", 
+    "Grave Glovewort (3)", 
+    "Grave Glovewort (4)", 
+    "Grave Glovewort (5)", 
+    "Grave Glovewort (6)", 
+    "Grave Glovewort (7)", 
+    "Grave Glovewort (8)", 
+    "Grave Glovewort (9)", 
+    "Smithing Stone (1)", 
+    "Smithing Stone (2)", 
+    "Smithing Stone (3)", 
+    "Smithing Stone (4)", 
+    "Smithing Stone (5)", 
+    "Smithing Stone (6)", 
+    "Smithing Stone (7)", 
+    "Smithing Stone (8)", 
+    "Somber Smithing Stone (1)", 
+    "Somber Smithing Stone (2)", 
+    "Somber Smithing Stone (3)", 
+    "Somber Smithing Stone (4)", 
+    "Somber Smithing Stone (5)", 
+    "Somber Smithing Stone (6)", 
+    "Somber Smithing Stone (7)", 
+    "Somber Smithing Stone (8)", 
+    "Somber Smithing Stone (9)", 
 ]
 
 spell_type = [
@@ -63,9 +109,11 @@ spell_type = [
     "Fire Monk Incantations", 
     "Frenzied Flame Incantations", 
     "Godskin Apostle Incantations", 
+    "Godslayer Incantations", 
     "Golden Order Incantations", 
     "Servants of Rot Incantations", 
     "Two Fingers Incantations", 
+    "Two Fingers' Incantations", 
     #------------------------------
     "Incantations", 
     "Aberrant Sorceries", 
@@ -81,6 +129,13 @@ spell_type = [
     "Night Sorceries", 
     "Primeval Sorceries", 
     "Cold Sorceries", 
+]
+
+armor_type = [
+    "Gauntlets", 
+    "Helms", 
+    "Chest Armor", 
+    "Leg Armor", 
 ]
 
 weapon_type = [
@@ -142,13 +197,19 @@ hide_list = [
     "Builds", 
     "Parrying", 
     "Sites of Grace", 
+    "Site of Grace", 
+    "Skeletons", 
+    "Stance", 
+    "NPC Summons", 
+    "Spirit Ashes", 
+    "Gestures", 
 ]
 
 # List of entities that exhibit parsing issues due to inconsistency with other similar pages
-weapons_blacklist = ["Upgrades", "Miquellan Knight's Sword", "Greataxe"]
+weapons_blacklist = ["Upgrades"]    # "Miquellan Knight's Sword", "Greataxe"
 items_blacklist = []
-spells_blacklist = ["Placidusax's Ruin"]
-bosses_blacklist = ["Dragonkin Soldier"]
+spells_blacklist = []   # "Placidusax's Ruin"
+bosses_blacklist = []
 
 # The Legacy Dungeons page is different enough, and there few enough instances, that these can be hardcoded here
 legacy_dungeons = [
@@ -173,6 +234,7 @@ class EntityCategory(Enum):
     SPELLS = 'Spells'
     TALISMANS = 'Talismans'
     WEAPONS = 'Weapons'
+    ARMOR = 'Armor'
 
 category_paths = {
     EntityCategory.BOSSES: PATH_BOSSES,
@@ -185,6 +247,7 @@ category_paths = {
     EntityCategory.SKILLS: PATH_SKILLS,
     EntityCategory.SPELLS: PATH_SPELLS,
     EntityCategory.TALISMANS: PATH_TALISMANS, 
+    EntityCategory.ARMOR: PATH_ARMOR, 
 }
 
 class Entity:
@@ -196,37 +259,9 @@ class Entity:
         self.content = content
 
     def __str__(self):
-        name_f_string = f"\n{self.name}\n\
-========\n\n"
+        name_f_string = f"\n{self.name}\n========\n\n"
 
         content_f_string = f"{self.content}"
-
-        """
-        name_f_string = f"\n{self.name}\n\
-========\n\n"
-
-        description_f_string = f"DESCRIPTION\n\
---------\n\
-{self.description}\n\n"
-
-        location_f_string = ''
-        if self.location != '':
-            location_f_string = f"LOCATION\n\
---------\n\
-{self.location}\n\n"
-
-        use_f_string = ''
-        if self.use != '':
-            use_f_string = f"USE\n\
---------\n\
-{self.use}\n\n"
-
-        notes_f_string = ''
-        if self.notes != '':
-            notes_f_string = f"NOTES & TIPS\n\
---------\n\
-{self.notes}\n"
-"""
 
         return name_f_string + content_f_string
     
@@ -238,7 +273,7 @@ class Entity:
             markdown = Formatter.reformat_map_links(markdown)
             markdown = Formatter.remove_map_links(markdown)
 
-            markdown = Formatter.remove_nbsp(markdown)
+            markdown = Formatter.replace_special_characters(markdown)
             markdown = Formatter.condense_newlines(markdown)
             markdown = Formatter.remove_other_notes_bullet(markdown)
 
@@ -250,40 +285,42 @@ class Entity:
             markdown = Formatter.unlink_builds(markdown)
             markdown = Formatter.unlink_special_weaknesses(markdown)
             markdown = Formatter.redirect_ashofwar_skill_links(markdown)
+            markdown = Formatter.replace_varre_e(markdown)
+            markdown = Formatter.unify_boc(markdown)
+            markdown = Formatter.unify_rat(markdown)
+            markdown = Formatter.unify_vulgar_militiamen(markdown)
+            markdown = Formatter.unify_miranda_sprout(markdown)
+            markdown = Formatter.unify_giant_miranda_sprout(markdown)
+            markdown = Formatter.reify_bullets(markdown)
+
+            if self.category not in [EntityCategory.ARMOR]:
+                markdown = Formatter.remove_notes_after_sell_value(markdown)
+
+            if self.category in [EntityCategory.NPCS]:
+                markdown = Formatter.clean_dialogue(markdown)
+
+            if self.category in [EntityCategory.ENEMIES]:
+                pass
+
+            if self.category in [EntityCategory.NPCS]:
+                pass
+
+            markdown = Formatter.remove_enemies_table(markdown)
+            markdown = Formatter.remove_npcs_table(markdown)
+            markdown = Formatter.remove_locations_table(markdown)
+
+            markdown = Formatter.final_whitespace_cleanup(markdown)
 
             # Targeted corrections
             markdown = Formatter.perform_targeted_corrections(self.name, markdown)
-            #print(markdown)
+            # print(repr(markdown))
+            # print(markdown)
             self.__dict__[name] = markdown
         else:
             self.__dict__[name] = value
 
     def derive_path(self):
         self.path = '/' + self.name.replace(' ', '+')
-
-    def format_links(self, md_text):
-        md_text_whitespace_fixed = md_text.replace(u'\xa0', ' ').strip() # Remove leading and trailing whitespace, and non-breaking spaces (&nbsp;)
-
-        # Removals
-        rx_hemorrhage = re.sub(r"\[\([0-9]+\)\]\(\/Hemorrhage[^\)]+\)", "", md_text_whitespace_fixed)
-        rx_remove_video_links = re.sub(r"\[Video[^\]]+\]\([^\)]+\)", "", rx_hemorrhage)
-
-        # Reformatting
-        # rx_map_links = re.sub(r"[\[]+([^\]]+)\]\((\/[I|i]nteractive\+[M|m]ap\?[^\ ]+) \"([^\"]+)\"\)\]*\.*", r"[\1](\1)", rx_remove_video_links) # Fix map links
-        # Now that all map links are in the same format, remove the generic ones i.e. not those that point toward a specific entity or location ("Elden Ring Map here", "Map Link", etc.)
-        # rx_remove_map_links = re.sub(r"\[(Elden Ring Map here|Map Coordinates|Map [Ll]ink|Elden Ring Map( [Ll]ink)*)\]\(\1\)", r"", rx_map_links)
-        # rx_links = re.sub(r"\[([^]]+)\]\(\/([^?\[\]]+) \"Elden Ring ([^\[\]]+)\"\)", r"[[\3|\1]]", rx_remove_map_links) # Reformat links
-        
-        # Due diligence
-        # rx_other_notes = re.sub(r"\* Other notes and player tips go here\.*", r"", rx_links)
-        # rx_unlink_builds = re.sub(r"\[\[Builds#[^\|]+\|([^\]]+)\]\]", r"\1", rx_other_notes)
-        # rx_special_weaknesses = re.sub(r"\[\[Special Weaknesses#[^\]]+\|([^\]]+)\]\]", r"\1", rx_unlink_builds)
-        # rx_ash_of_war_skill_links = re.sub(r"\[\[Ash of War: ", r"[[", rx_special_weaknesses)
-        # rx_condense_multispaces = re.sub(r" +", r" ", rx_ash_of_war_skill_links) # Condense multiple spaces
-
-        corrections_applied = self.perform_targeted_corrections(rx_condense_multispaces)
-
-        return corrections_applied
 
     def set_location(self, location_in_html):
         self.location = md(location_in_html.strip().replace(u'\xa0', ' '))
@@ -315,32 +352,14 @@ class Entity:
 
         image = ""
         if self.image is not None:
-            image = "![["+self.image.name+"]]\n"
+            image = "![["+self.image.name+"]]\n\n"
 
         content_md_string = ""
         if self.content != "":
-            content_md_string = f"{self.content}\n\n"
-        
-        # description_md_string = ""
-        # if self.description != "":
-        #     description_md_string = f"## Description\n\n{self.description}\n\n"
-
-        # location_md_string = ""
-        # if self.location != "":
-        #     location_md_string = f"## Location\n\n{self.location}\n\n"
-
-        # use_md_string = ""
-        # if self.use != "":
-        #     use_md_string = f"## Use\n\n{self.use}\n\n"
-
-        # notes_md_string = ""
-        # if self.notes != "":
-        #     notes_md_string = f"## Notes & Tips\n\n{self.notes}\n\n"
-
-        #print(self.content)
+            content_md_string = f"{self.content}"
 
         output_str = tags_md_string + image + content_md_string
-        #print(output_str)
+        
         f.write(output_str)
         f.close()
 

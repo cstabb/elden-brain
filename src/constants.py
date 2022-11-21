@@ -15,12 +15,17 @@ PATH_SKILLS                 = URL_WIKI_BASE + "/Skills"
 PATH_SPELLS                 = URL_WIKI_BASE + "/Magic+Spells"
 PATH_SHIELDS                = URL_WIKI_BASE + "/Shields"
 PATH_ARMOR                  = URL_WIKI_BASE + "/Armor"
+PATH_ARMOR_HELMS            = URL_WIKI_BASE + "/Helms"
+PATH_ARMOR_CHESTS           = URL_WIKI_BASE + "/Chest+Armor"
+PATH_ARMOR_GAUNTLETS        = URL_WIKI_BASE + "/Gauntlets"
+PATH_ARMOR_LEGS             = URL_WIKI_BASE + "/Leg+Armor"
 PATH_TALISMANS              = URL_WIKI_BASE + "/Talismans"
 PATH_CREATURES_AND_ENEMIES  = URL_WIKI_BASE + "/Creatures+and+Enemies"
 PATH_BOSSES                 = URL_WIKI_BASE + "/Bosses"
 PATH_LEGACY_DUNGEONS        = URL_WIKI_BASE + "/Legacy+Dungeons"
 PATH_LOCATIONS              = URL_WIKI_BASE + "/Locations"
 PATH_NPCS                   = URL_WIKI_BASE + "/NPCs"
+PATH_MERCHANTS              = URL_WIKI_BASE + "/Merchants"
 PATH_ITEMS                  = URL_WIKI_BASE + "/Items"  # Not used--item index pages are listed below
 PATH_LORE                   = URL_WIKI_BASE + "/Lore"   # Used for scraping transcripts
 

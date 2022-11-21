@@ -123,54 +123,111 @@ class Scraper:
         for img in content_block("img"):
             img.decompose()
         # Throw out all span tags
-        for span in content_block("span"):
-            span.decompose()
+        # for span in content_block("span"):
+        #     span.decompose()
+        # Throw out all strong tags
+        # for img in content_block("strong"):
+        #     img.decompose()
+
+        def parse_description(parent, description):
+            ems = parent.find_all('em')
+            # print(ems)
+            for line in ems:
+                # print(line.contents)
+                values = [str(x).replace("<em>", "") for x in line.contents]
+                # print(values)
+                for i, val in enumerate(values):
+                    # print(repr(val))
+                    if val != "<br/>":
+                        values[i] = "<em>"+val+"</em>"
+                    # else:
+                    #     values[i] = " "
+                # print(repr(values))
+                description += ' '.join(values) + ' '
+            if len(ems) > 0:
+                description += "<br><br>"
+            return description
         
         # Get description
         description = ""
-        for block in content_block.find_all('div', attrs={'class', 'lineleft'}):
-            # print(block)
-            for paragraph in block.find_all('p'):
-                print(paragraph)
-                ems = paragraph.find_all('em')
-                # print(ems)
-                # print(f"PARAGRAPH === {description}\n\n")
-                for line in ems:
-                    # print(line.contents)
-                    values = [str(x).replace("<em>", "") for x in line.contents]
-                    print(values)
-                    for i, val in enumerate(values):
-                        if val != "<br/>":
-                            values[i] = "<em>"+val+"</em>"
-                    description += ''.join(values)
-                if len(ems) > 0:
-                   description += "<br><br>"
+        for item in content_block.find_all('div', attrs={'class', 'lineleft'}):
+            # print(f"\n\BLOCK === \n{block}")
+            paragraphs = item.find_all('p')
+            # if len(paragraphs) == 0:
+
+            if len(paragraphs) == 0:
+                description = parse_description(item, description)
+            else:
+                for paragraph in paragraphs:
+                    # print(f"\n\PARAGRAPH === \n{paragraph}")
+                    description = parse_description(paragraph, description)
         # print(f"\n\nDESCRIPTION === \n{description}")
         description = description.replace("</em><em>", "").replace("</em><br/><em>", "")
         # description = re.sub(r"<span", r"", description)
-        print(f"\n\nDESCRIPTION === \n{description}")
+        # print(f"\n\nDESCRIPTION === \n{description}")
 
         # Drop these sections
         sections_to_drop = [
             "Moveset", 
             "Upgrades", 
+            "Builds", 
+            "Shop", 
+            "Combat [Ii]nformation", 
+            "Gallery", 
+            "Walkthrough", 
+            "Map", 
+            "GALLERY", 
+            "All .*Pieces", 
+            # "Boss",
+            # "All ", # Final section of armor sets pages (space included to avoid collision with All-Knowing Set)
         ]
 
         contents = {}
 
+        # TODO: Capture additional headers
         for col in content_block.find_all('h3', attrs={'class': 'bonfire'}):
             #print(f"COLUMN: {str(col)}")
             this_section = str(col)
             contents[this_section] = ""
 
-            for section in col.find_next_siblings(['h3', 'ul', 'p']):
-                # print(f"SECTION: {str(section)}")
-                if section.name == 'h3' or "Click below for a list of all possible Ashes of War that can be applied" in str(section):
+            # print(this_section)
+
+            for section in col.find_next_siblings(['h3', 'ul', 'ol', 'p', 'div']):
+                # print(f"NAME: {str(section.name)}")
+                # print(f"SECTION: {str(section.contents)}")
+                if section.name in ['h3'] or "Click below for a list of all possible Ashes of War that can be applied" in str(section):
                     break
                 else:
+                    # print(f"SECTION: {str(section.contents)}")
                     contents[this_section] += str(section)
 
-        # print(f"FIRST\n\n{contents}")
+        # print(f"FIRST\n\n{contents.keys()}\n")
+        # eg = contents['<h3 class="bonfire">Flying Dragon Agheel Combat information</h3>']
+        # print(f"EXAMPLE===\n{eg}")
+
+        # Find the key of the Drops header
+        header_key = ""
+        for header, item in contents.items():
+            if re.search(r"Drop Rates<\/h3>", header):
+                header_key = header
+        # print(contents[header_key])
+
+        if header_key in contents:
+            table = bs(contents[header_key], 'html.parser') # Re-Soupify
+            contents[header_key] = ""   # Clear the value
+            for row in table.find_all('tr')[1:]:
+                # print(f"ROW ===\n{row}")
+                for item in row.find('a'):
+                    link = item.string
+                    link = re.sub(r"(.+)", r"%BULLET% [[\1|\1]]\n", link)
+                    contents[header_key] += link
+                    # print(f"LINK ===\n{link}")
+
+        # drop_contents = md(contents[header_key])
+        # drop_contents = re.sub(r"\[\[([^\|]+)\|\1", r"[[\1\\|\1", drop_contents)
+        # print(f"DROP ===\n{contents[header_key]}")
+        # contents[header_key] = drop_contents
+
 
         # Drop the undesirable sections from contents
         keys_to_drop = []
@@ -185,10 +242,18 @@ class Scraper:
         # print(f"SECOND\n\n{contents}")
 
         headers = {
-            '<h3 class="bonfire">Where to [F|f]ind[^<]+<\/h3>': "## Location\n\n",
-            '<h3 class=\"bonfire\">.+Location in Elden Ring<\/h3>': "## Location\n\n",
-            '<h3 class=\"bonfire\">.+use in Elden Ring<\/h3>': "## Use\n\n",
-            '<h3 class="bonfire">.+Notes[^<]+<\/h3>':           "## Notes\n\n", 
+            r'<h3 class=\"bonfire\">Where to [F|f]ind[^<]+<\/h3>':      r"### Location\n\n",
+            r'<h3 class=\"bonfire\">.+Location in Elden Ring<\/h3>':    r"### Location\n\n",
+            r'<h3 class=\"bonfire\">.+Location(s*)<\/h3>':              r"### Location\n\n",
+            r'<h3 class=\"bonfire\">.+use in Elden Ring<\/h3>':         r"### Use\n\n",
+            r'<h3 class=\"bonfire\">.+Use<\/h3>':                       r"### Use\n\n",
+            r'<h3 class=\"bonfire\">.+Note[^<]+<\/h3>':                 r"### Notes\n\n", 
+            r'<h3 class=\"bonfire\">.+[Ii]nformation<\/h3>':            r"### Notes\n\n", 
+            r'<h3 class=\"bonfire\">.+Build[^<]+<\/h3>':                r"### Builds\n\n", 
+            r'<h3 class=\"bonfire\">Dialogue.+<\/h3>':                  r"### Dialogue\n\n",
+            r'<h3 class=\"bonfire\">Elden Ring.+Boss<\/h3>':            r"### Boss Information\n\n",
+            r'<h3 class=\"bonfire\">Elden Ring.+Boss \((.+)\)<\/h3>':   r"### Boss Information (\1)\n\n",
+            r'<h3 class=\"bonfire\">Elden Ring.+Drop Rates<\/h3>':      r"### Drops\n\n",
         }
         
         # Build a string from contents while replacing headers
@@ -198,19 +263,17 @@ class Scraper:
             header = key
             for header_regex, remap in headers.items():
                 if re.search(header_regex, key):
-                    header = remap
+                    # print(f"\n\nMAP ===\nHEADER={header_regex}\nREMAP{remap}\nKEY={key}")
+                    header = re.sub(header_regex, remap, key)
+                    # print(f"MAP AFTER ===\nHEADER={header_regex}\nREMAP{remap}\nKEY={key}")
+                    # header = remap
 
             contents_string += header + val
 
-        # before = contents_string
         contents_string = re.sub(r"\<p\>[\s]+\<\/p\>", r"", contents_string)
-        # after = contents_string
-        # if before == after:
-        #     print("HUH?")
+        contents_string = re.sub(r"<br\/>", r"<br>", contents_string)
 
-        # print(f"THIRD\n\n{contents_string}")
-
-        # print(md(contents_string))
+        # print(f"\nTHIRD ===\n{contents_string}")
 
         entity.image = image
         entity.content = contents_string
@@ -353,13 +416,12 @@ class Scraper:
             for link in row.find_all('a', attrs={'class': 'wiki_link'}):
                 destination = link.get('href')
                 paths.append(destination)
-
+        print(paths)
         paths = paths[0:-6]   # Last several elements contain throwaway urls
-        
+        paths.append("/Three+Sisters")    # Add in anything missing
         paths = set(paths)    # Unique the values
-        paths = paths.append("/Three+Sisters")    # Add in anything missing
         #print(Scraper.legacy_dungeons)
-        exclude =  set(Scraper.legacy_dungeons + ["/Legacy+Dungeons"])
+        exclude =  set(legacy_dungeons + ["/Legacy+Dungeons", "/Torrent+(Spirit+Steed)"])
 
         paths = paths - exclude   # drop Legacy Dungeons from list
 
@@ -380,6 +442,8 @@ class Scraper:
             # for link in row.find_all('a', attrs={'class': 'wiki_link'}):
                 destination = line.a.get('href')
                 paths.append(destination)
+
+        paths = list(set(paths))    # Unique
 
         return paths
 
@@ -409,12 +473,19 @@ class Scraper:
         # Get all entities from the main Locations page
         paths = []
         # for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'row'})):
-        for idx, content in enumerate(content_block.find_all('div', attrs={'class': 'tabcontent 1-tab'})):
-            for link in content.find_all('a', attrs={'class': 'wiki_link'}):
-                #print(link)
-                destination = link.get('href')
-                print(destination)
-                paths.append(destination)
+        for col in soup.find_all('div', attrs={'class': 'col-sm-4'}):
+            for section in col.find_all(['h3', 'h4']):
+                for link in section.find_all('a', attrs={'class': 'wiki_link'}):
+                    destination = link.get('href')
+                    # print(destination)
+                    paths.append(destination)
+
+        # paths = []
+        # for row in content_block.find_all('div', attrs={'id': 'reveal'}):
+        #     for link in row.find_all('a', attrs={'class': 'wiki_link'}):
+        #         destination = link.get('href')
+        #         # destination = '/' + destination.split('/')[-1]
+        #         paths.append(destination)
         
         paths = set(paths)    # Unique the values
         
@@ -422,7 +493,7 @@ class Scraper:
             "/NPC+Invaders", 
         }
 
-        paths = paths - exclude   # drop Legacy Dungeons from list
+        paths = paths - exclude
         
         return list(paths)
 
@@ -434,25 +505,42 @@ class Scraper:
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
-        # Get all entities from the main Locations page
+        # Get all entities from the main NPCs page
         paths = []
-        for idx, row in enumerate(content_block.find_all('div', attrs={'id': 'reveal'})):
+        for row in content_block.find_all('div', attrs={'id': 'reveal'}):
             for link in row.find_all('a', attrs={'class': 'wiki_link'}):
                 destination = link.get('href')
                 destination = '/' + destination.split('/')[-1]
                 paths.append(destination)
 
-        paths = set(paths)    # Unique the values
+        # Get all merchants
+        response = requests.get(PATH_MERCHANTS)
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+        for row in content_block.find_all('h4'):
+            for link in row.find_all('a', attrs={'class': 'wiki_link'}):
+                destination = link.get('href')
+                paths.append(destination)
         
         exclude = {
             "/Isolated+Merchants", 
             "/Nomadic+Merchants", 
             "/Volcano+Manor+Spirit", 
+            "/Merchants#blacksmithing", 
+            "/Merchants#equipment", 
+            "/Merchants#generalgoods", 
+            "/Merchants#special", 
+            "/Merchants#spells",
+            "/Smithing+Master+Iji", 
+            "/Blacksmith+Hewg", 
         }
 
-        paths = paths - exclude   # drop Legacy Dungeons from list
+        paths = set(paths) - exclude   # drop Legacy Dungeons from list
 
-        return list(paths)
+        paths = list(set(paths))    # Unique
+
+        return paths
 
     def get_skills_paths(self):
         """
@@ -484,9 +572,67 @@ class Scraper:
             # paths.append(entity_name)
 
         paths = list(set(paths))    # Unique
-        print(paths)    
+        # print(paths)    
         return paths
-    
+
+    def get_armor_sets_paths(self):
+        """
+        """
+        # Armor Sets
+        response = requests.get(PATH_ARMOR)
+        soup = bs(response.text, 'html.parser')
+
+        table_body = soup.find('div', attrs={'class': 'col-sm-3', 'style': 'float-left: !Important; height: auto;'})
+
+        paths = []
+        for link in table_body.find_all('a'):
+            path = link.get('href')
+            # paths.append(path)
+        
+        # Helms
+        response = requests.get(PATH_ARMOR_HELMS)
+        soup = bs(response.text, 'html.parser')
+
+        table_body = soup.find('tbody')
+
+        for row in table_body.find_all('tr'):
+            paths.append(row.a.get('href'))
+
+        # Chest Armor
+        response = requests.get(PATH_ARMOR_CHESTS)
+        soup = bs(response.text, 'html.parser')
+
+        table_body = soup.find('tbody')
+
+        for row in table_body.find_all('tr'):
+            pass
+            # paths.append(row.a.get('href'))
+
+        # Gauntlets
+        response = requests.get(PATH_ARMOR_GAUNTLETS)
+        soup = bs(response.text, 'html.parser')
+
+        table_body = soup.find('tbody')
+
+        for row in table_body.find_all('tr'):
+            pass
+            # paths.append(row.a.get('href'))
+        # paths.remove('/Gauntlets')
+
+        # Leg Armor
+        response = requests.get(PATH_ARMOR_LEGS)
+        soup = bs(response.text, 'html.parser')
+
+        table_body = soup.find('tbody')
+
+        for row in table_body.find_all('tr'):
+            pass
+            # paths.append(row.a.get('href'))
+        
+        paths = list(set(paths))    # Unique
+
+        return paths
+
     def get_paths(self, category=''):
         """
         """
@@ -525,7 +671,11 @@ class Scraper:
             paths = self.get_talismans_paths()
         elif category == EntityCategory.WEAPONS:
             paths = self.get_weapons_paths()
+        elif category == EntityCategory.ARMOR:
+            paths = self.get_armor_sets_paths()
         
         paths.sort()
+        for path in paths:
+            print(path)
 
         return paths

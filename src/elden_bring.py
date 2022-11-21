@@ -50,8 +50,9 @@ class EldenBring:
             time.sleep(0.001)   # Necessary to allow Obsidian a moment to recognize the new file
         
     def create_hidden(self, overwrite=True):
-        all_targets = self.classes + self.stats + self.status_effects + \
-                      self.weapon_type + self.shield_type + self.hide_list
+        all_targets = classes + stats + status_effects + armor_type + \
+                      spell_type + weapon_type + shield_type + \
+                      hide_list + items_to_hide
         destination_path = LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_HIDDEN
 
         self.log.info(f"Creating {len(all_targets)} hidden files...")
@@ -92,14 +93,12 @@ class EldenBring:
             else:
                 self.prima_materia[category].append(entity)
 
-        print(self.prima_materia)
-
     def _prepare_entities(self, category=''):
         """
         Create the entity objects for a given category.
         """
         paths = self.scraper.get_paths(category)
-        print(paths)
+        # print(paths)
         entities = self.scraper.convert_paths_to_entities(paths, category) # Only URLs and names at this point
         
         self.prima_materia[category] = entities
