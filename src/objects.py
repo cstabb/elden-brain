@@ -8,6 +8,7 @@ from constants import *
 from text_handling import Formatter
 
 classes = [
+    "Classes", 
     "Hero", 
     "Bandit", 
     "Astrologer", 
@@ -31,10 +32,15 @@ stats = [
     "Faith", 
     "Arcane", 
     "Discovery", 
+    "Affinities", 
+    "HP", 
     "FP", 
+    "PvP", 
     "Poise", 
     "Robustness", 
     "Immunity", 
+    "Equip Load", 
+    "Physical Damage", 
     "Standard Damage", 
     "Strike Damage", 
     "Pierce Damage", 
@@ -43,10 +49,20 @@ stats = [
     "Lightning Damage", 
     "Holy Damage", 
     "Fire Damage", 
+    "Physical Defense", 
+    "Standard Defense", 
+    "Strike Defense", 
+    "Pierce Defense", 
+    "Slash Defense", 
+    "Critical Defense", 
+    "Lightning Defense", 
+    "Holy Defense", 
+    "Fire Defense", 
     "damage types", 
 ]
 
 status_effects = [
+    "Status Effects", 
     "Buffs and Debuffs", 
     "Poison", 
     "Scarlet Rot", 
@@ -139,6 +155,7 @@ armor_type = [
 ]
 
 weapon_type = [
+    "Weapons", 
     "Daggers", 
     "Straight Swords", 
     "Greatswords", 
@@ -186,23 +203,33 @@ hide_list = [
     "Magic Spells", 
     "Runes", 
     "Skills", 
+    "Bell Bearings", 
     "Smithing Stones", 
     "Somber Smithing Stones", 
     "Patch Notes", 
     "Creatures and Enemies", 
     "New Game Plus", 
     "Upgrades", 
+    "Crafting", 
     "Crafting Materials", 
     "Cookbooks", 
     "Builds", 
+    "Parry", 
     "Parrying", 
     "Sites of Grace", 
     "Site of Grace", 
     "Skeletons", 
     "Stance", 
     "NPC Summons", 
+    "NPC Invaders", 
     "Spirit Ashes", 
     "Gestures", 
+    "Bosses", 
+    "Lore", 
+    "NPCs", 
+    "Great Runes", 
+    "Smithing Stone", 
+    "Stake of Marika", 
 ]
 
 # List of entities that exhibit parsing issues due to inconsistency with other similar pages
@@ -222,9 +249,11 @@ legacy_dungeons = [
     "/Crumbling+Farum+Azula", 
 ]
 
-class EntityCategory(Enum):
+class Category(Enum):
+    NONE = 'None'
     BOSSES = 'Bosses'
     ENEMIES = 'Creatures and Enemies'
+    HIDDEN = 'Hidden'
     ITEMS = 'Items'
     LEGACY_DUNGEONS = 'Legacy Dungeons'
     LOCATIONS = 'Locations'
@@ -235,29 +264,54 @@ class EntityCategory(Enum):
     TALISMANS = 'Talismans'
     WEAPONS = 'Weapons'
     ARMOR = 'Armor'
+    SPIRIT_ASH = 'Spirit Ashes'
 
 category_paths = {
-    EntityCategory.BOSSES: PATH_BOSSES,
-    EntityCategory.ENEMIES: PATH_CREATURES_AND_ENEMIES,
-    EntityCategory.ITEMS: PATH_ITEMS,
-    EntityCategory.LEGACY_DUNGEONS: PATH_LEGACY_DUNGEONS,
-    EntityCategory.LOCATIONS: PATH_LOCATIONS,
-    EntityCategory.NPCS: PATH_NPCS,
-    EntityCategory.SHIELDS: PATH_SHIELDS,
-    EntityCategory.SKILLS: PATH_SKILLS,
-    EntityCategory.SPELLS: PATH_SPELLS,
-    EntityCategory.TALISMANS: PATH_TALISMANS, 
-    EntityCategory.ARMOR: PATH_ARMOR, 
+    Category.BOSSES: PATH_BOSSES,
+    Category.ENEMIES: PATH_CREATURES_AND_ENEMIES,
+    Category.ITEMS: PATH_ITEMS,
+    Category.LEGACY_DUNGEONS: PATH_LEGACY_DUNGEONS,
+    Category.LOCATIONS: PATH_LOCATIONS,
+    Category.NPCS: PATH_NPCS,
+    Category.SHIELDS: PATH_SHIELDS,
+    Category.SKILLS: PATH_SKILLS,
+    Category.SPELLS: PATH_SPELLS,
+    Category.TALISMANS: PATH_TALISMANS, 
+    Category.ARMOR: PATH_ARMOR, 
+    Category.SPIRIT_ASH: PATH_SPIRIT_ASHES, 
+}
+
+name_overrides = {
+    "Ranni the Witch":      "Ranni", 
+    "Preceptor Seluvis":    "Seluvis", 
+    "Monstrous Dog":        "Giant Dog", 
+    "Monstrous Crow":       "Giant Crow", 
+    "Cathedral of Dragon Communion (Caelid)":   "Cathedral of Dragon Communion"
 }
 
 class Entity:
-    def __init__(self, name, path='', category=None, image=None, content=''):
-        self.name = name
-        self.path = path
+    def __init__(self, name, category=Category.NONE, image=None):
+        self.path = '/' + name.replace(' ', '+')    # Set the original path before we potentially remap name
+        
+        try:
+            name = name_overrides[name]
+        except KeyError:
+            pass
+        self.name = re.sub(r"\:", r",", name)  # Filenames can't have colons
+        
         self.category = category
         self.image = image
-        self.content = content
 
+        self.tags = []
+        if category != Category.NONE:
+            self.tags.append(re.sub(r" +", r"", category.value))
+
+        # Hide "About" items
+        if re.search(r"^About ", self.name):
+            self.add_tag("Hidden")
+        
+        self.content = ""
+        
     def __str__(self):
         name_f_string = f"\n{self.name}\n========\n\n"
 
@@ -266,7 +320,11 @@ class Entity:
         return name_f_string + content_f_string
     
     def __setattr__(self, name, value):
-        if name == "content":
+        if name == 'content':
+            if value == "":
+                self.__dict__[name] = value
+                return
+            # print(value)
             markdown = md(value)
             markdown = Formatter.remove_hemorrhage_links(markdown)
             markdown = Formatter.remove_video_links(markdown)
@@ -278,49 +336,86 @@ class Entity:
             markdown = Formatter.remove_other_notes_bullet(markdown)
 
             markdown = Formatter.reformat_links(markdown)
+            markdown = Formatter.remove_anchor_links(markdown)
 
             markdown = Formatter.remove_extra_spaces(markdown)
 
             # Misc
             markdown = Formatter.unlink_builds(markdown)
             markdown = Formatter.unlink_special_weaknesses(markdown)
+            markdown = Formatter.correct_crucible_aspect_spell_names(markdown)
             markdown = Formatter.redirect_ashofwar_skill_links(markdown)
             markdown = Formatter.replace_varre_e(markdown)
+
+            # Unify inconsistent links/names
+            markdown = Formatter.unify_champion_bracers(markdown)
+            markdown = Formatter.unify_raging_wolf_gauntlets(markdown)
+            markdown = Formatter.unify_alexander(markdown)
             markdown = Formatter.unify_boc(markdown)
             markdown = Formatter.unify_rat(markdown)
+            markdown = Formatter.unify_celebrant(markdown)
             markdown = Formatter.unify_vulgar_militiamen(markdown)
             markdown = Formatter.unify_miranda_sprout(markdown)
             markdown = Formatter.unify_giant_miranda_sprout(markdown)
+            markdown = Formatter.unify_lesser_mad_pumpkin_head(markdown)
+            markdown = Formatter.unify_school_of_graven_mages(markdown)
+            markdown = Formatter.unify_swamp_of_aeonia(markdown)
+            
+            markdown = Formatter.unify_d(markdown)
+            markdown = Formatter.unify_eleonora(markdown)
+            markdown = Formatter.unify_ranni(markdown)
+            markdown = Formatter.unify_hewg(markdown)
+            markdown = Formatter.unify_iji(markdown)
+            markdown = Formatter.unify_godfrey(markdown)
+
+            markdown = Formatter.unify_leyndell(markdown)
+            markdown = Formatter.unify_ordina(markdown)
+            markdown = Formatter.unify_gelmir(markdown)
+            markdown = Formatter.unify_raya_lucaria(markdown)
+            markdown = Formatter.unify_liurnia(markdown)
+
+            # Convert custom text markers to Markdown
+            markdown = Formatter.reformat_notes(markdown)
             markdown = Formatter.reify_bullets(markdown)
 
-            if self.category not in [EntityCategory.ARMOR]:
+            if self.category not in [Category.ARMOR]:
                 markdown = Formatter.remove_notes_after_sell_value(markdown)
 
-            if self.category in [EntityCategory.NPCS]:
+            if self.category in [Category.NPCS]:
                 markdown = Formatter.clean_dialogue(markdown)
 
-            if self.category in [EntityCategory.ENEMIES]:
+            if self.category in [Category.ENEMIES]:
                 pass
 
-            if self.category in [EntityCategory.NPCS]:
-                pass
+            # markdown = Formatter.remove_enemies_table(markdown)
+            # markdown = Formatter.remove_npcs_table(markdown)
+            # markdown = Formatter.remove_locations_table(markdown)
+            # markdown = Formatter.remove_key_items_table(markdown)
+            # markdown = Formatter.remove_bell_bearings_table(markdown)
 
-            markdown = Formatter.remove_enemies_table(markdown)
-            markdown = Formatter.remove_npcs_table(markdown)
-            markdown = Formatter.remove_locations_table(markdown)
+            markdown = Formatter.remove_category_links_table(markdown)
+            markdown = Formatter.fix_drop_links_inside_tables(markdown)
+            markdown = Formatter.add_headers_to_tables(markdown)
 
             markdown = Formatter.final_whitespace_cleanup(markdown)
 
             # Targeted corrections
             markdown = Formatter.perform_targeted_corrections(self.name, markdown)
-            # print(repr(markdown))
-            # print(markdown)
+            markdown = Formatter.condense_newlines(markdown)
+            markdown = Formatter.final_whitespace_cleanup(markdown)
+            # # print(repr(markdown))
+            # # print(markdown)
             self.__dict__[name] = markdown
         else:
             self.__dict__[name] = value
 
-    def derive_path(self):
-        self.path = '/' + self.name.replace(' ', '+')
+    def add_tag(self, tag):
+        tag = re.sub(r" +", r"", tag)
+        if tag not in self.tags:
+            self.tags.append(tag)
+
+    # def derive_path(self):
+    #     self.path = '/' + self.name.replace(' ', '+')
 
     def set_location(self, location_in_html):
         self.location = md(location_in_html.strip().replace(u'\xa0', ' '))
@@ -328,7 +423,7 @@ class Entity:
     def write(self, additional_tags=[], filename=None):
 
         if filename is None:
-            filename = self.name
+            filename = re.sub(r"\:", r",", self.name)
 
         path = LOCAL_CACHE + LOCAL_VAULT_NAME
         if self.category is not None:
@@ -346,9 +441,13 @@ class Entity:
         # else:
         #     additional_tags = "\n- " + "\n- ".join(additional_tags)
         # tags_md_string = f"---\ntags:\n- {self.category.value}{additional_tags}\n---\n\n"
-        if self.category is not None:
-            category_string = re.sub(r" +", r"", self.category.value)
-            tags_md_string = f"#{category_string}\n\n"
+        # if self.category is not None:
+        #     category_string = re.sub(r" +", r"", self.category.value)
+        #     self.tags.insert(0, category_string)
+        #     # print(tags)
+        tags = ["#"+tag for tag in self.tags]
+        # print(tags)
+        tags_md_string = " ".join(tags) + f"\n\n"
 
         image = ""
         if self.image is not None:

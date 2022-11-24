@@ -7,105 +7,174 @@ def main():
 
     eb = EldenBring()
 
+    # Refactor 2.0 workflow
+    # eb.list_categories()
+    # eb.update_entity_names(Category.BOSSES)
+    # print(eb.get_entity_names(Category.WEAPONS))
+    # hidden_entities_names = eb.get_entity_names(Category.HIDDEN)
+    # hidden_entities = eb.create_entities(hidden_entities_names) # Create shells without content
+    # eb.add_tag(hidden_entities, "NewTag")
+    # hidden_entities = [entity for entity in entities where entity.name not in drop_list]
+    # hidden_entities = eb.scrape_entities(hidden_entities_names, write=False) # Default
+    # hidden_entities = eb.scrape_entities(hidden_entities_names, write=True, directory="/Hidden") # If entities have already been scraped, don't rescrape
+    # eb.write_entities(hidden_entities, directory="/Hidden") # Redundant if the above has been run; will rewrite over files just created
+    
     # eb.create_hidden()
 
-    # eb.scrape_entities(EntityCategory.WEAPONS, write=True)
-    # eb.scrape_entities(EntityCategory.SHIELDS, write=True)
-    # eb.scrape_entities(EntityCategory.ARMOR, write=True)
-    # eb.scrape_entities(EntityCategory.NPCS, write=True)
-    # eb.scrape_entities(EntityCategory.BOSSES, write=True)
-    # eb.scrape_entities(EntityCategory.ENEMIES, write=True)
-    # eb.scrape_entities(EntityCategory.LOCATIONS, write=True)
+    # eb.scrape_entities(Category.WEAPONS, write=True)
+    # eb.scrape_entities(Category.SHIELDS, write=True)
+    # eb.scrape_entities(Category.ARMOR, write=True)
+    # eb.scrape_entities(Category.NPCS, write=True)
+    # eb.scrape_entities(Category.BOSSES, write=True) # Locations sneaking in
+    # eb.scrape_entities(Category.ENEMIES, write=True)
+    # eb.scrape_entities(Category.LOCATIONS, write=True) # Missing Mt Gelmir
+    # eb.scrape_entities(Category.LEGACY_DUNGEONS, write=True)
+    # eb.scrape_entities(Category.ITEMS, write=True)
+    # eb.scrape_entities(Category.TALISMANS, write=True)
+    # eb.scrape_entities(Category.SPIRIT_ASH, write=True)
+    # eb.scrape_entities(Category.SPELLS, write=True)
 
-    # eb.scrape_entity("Alberich's Set", EntityCategory.ARMOR, True)
-    # eb.scrape_entity("All-Knowing Set", EntityCategory.ARMOR, True)
-    # eb.scrape_entity("Bloodhound Knight Armor (Altered)", EntityCategory.ARMOR, True)
+    # eb.scrape_entity("Alberich's Set", Category.ARMOR, True)
+    # eb.scrape_entity("Alberich's Pointed Hat", Category.ARMOR, True)
+    # eb.scrape_entity("All-Knowing Set", Category.ARMOR, True)
+    # eb.scrape_entity("Bloodhound Knight Armor (Altered)", Category.ARMOR, True)
+    # eb.scrape_entity("Rotten Duelist Greaves", Category.ARMOR, True)
+    # eb.scrape_entity("Gravekeeper Cloak", Category.ARMOR, True)
+    # eb.scrape_entity("Crucible Tree Helm", Category.ARMOR, True)
 
-    # eb.scrape_entity("Omenkiller", EntityCategory.BOSSES, True)
-    # eb.scrape_entity("Flying Dragon Agheel", EntityCategory.BOSSES, True)
-    # eb.scrape_entity("Black Blade Kindred", EntityCategory.BOSSES, True)
-    # eb.scrape_entity("Cleanrot Knight", EntityCategory.BOSSES, True)
-    # eb.scrape_entity("Dragonkin Soldier", EntityCategory.BOSSES, True)
-    # eb.scrape_entity("Beast Clergyman", EntityCategory.BOSSES, True)
+    # eb.scrape_entity("Aspects of the Crucible: Breath", Category.SPELLS, True)
+    # eb.scrape_entity("Aspects of the Crucible: Horns", Category.SPELLS, True)
+    # eb.scrape_entity("Aspects of the Crucible: Tail", Category.SPELLS, True)
 
-    # eb.scrape_entity("Abandoned Cave", EntityCategory.LOCATIONS, True)
-    # eb.scrape_entity("Ainsel River", EntityCategory.LOCATIONS, True)
-    # eb.scrape_entity("Guardians' Garrison", EntityCategory.LOCATIONS, True)
-    eb.scrape_entity("Liurnia of the Lakes", EntityCategory.LOCATIONS, True)
+    # eb.scrape_entity("Aspect of the Crucible: Breath", Category.SPELLS, True)
 
-    # eb.scrape_entity("Teardrop Scarab", EntityCategory.ENEMIES, True)
+    # eb.scrape_entity("Abandoned Merchant's Bell Bearing", Category.ITEMS, True)
+    # eb.scrape_entity("Meeting Place Map", Category.ITEMS, True)
+    # eb.scrape_entity("Academy Glintstone Key", Category.ITEMS, True)
+    # eb.scrape_entity("Ritual Pot", Category.ITEMS, True)
+    # eb.scrape_entity("Boiled Crab", Category.ITEMS, True)
+    # eb.scrape_entity("Smithing-Stone Miner's Bell Bearing (1)", Category.ITEMS, True)
+    # eb.scrape_entity("Crimson Bubbletear", Category.ITEMS, True)
+    # eb.scrape_entity("Arteria Leaf", Category.ITEMS, True)
+    # eb.scrape_entity("Sewing Needle", Category.ITEMS, True)
+    # eb.scrape_entity("Eye of Yelough", Category.ITEMS, True)
 
-    # eb.scrape_entity("Hyetta", EntityCategory.NPCS, True)
-    # eb.scrape_entity("Diallos", EntityCategory.NPCS, True)
+    # eb.scrape_entity("Ancestral Spirit's Horn", Category.TALISMANS, True)
+
+    # eb.scrape_entity("Ancient Dragon Knight Kristoff Ashes", Category.SPIRIT_ASH, True)
+    # eb.scrape_entity("Dolores the Sleeping Arrow Puppet", Category.SPIRIT_ASH, True)
+
+
+
+    # eb.scrape_entity("Radagon of the Golden Order", Category.BOSSES, True)
+    # eb.scrape_entity("Omenkiller", Category.BOSSES, True)
+    # eb.scrape_entity("Flying Dragon Agheel", Category.BOSSES, True)
+    # eb.scrape_entity("Black Blade Kindred", Category.BOSSES, True)
+    # eb.scrape_entity("Cleanrot Knight", Category.BOSSES, True)
+    # eb.scrape_entity("Dragonkin Soldier", Category.BOSSES, True)
+    # eb.scrape_entity("Beast Clergyman", Category.BOSSES, True)
+    # eb.scrape_entity("Grafted Scion", Category.BOSSES, True)
+    # eb.scrape_entity("Black Knife Assassin", Category.BOSSES, write=True)
+
+    eb.scrape_entity("Roundtable Hold", Category.LOCATIONS, True)
+    # eb.scrape_entity("Abandoned Cave", Category.LOCATIONS, True)
+    # eb.scrape_entity("Ainsel River", Category.LOCATIONS, True)
+    # eb.scrape_entity("Guardians' Garrison", Category.LOCATIONS, True)
+    # eb.scrape_entity("Liurnia of the Lakes", Category.LOCATIONS, True)
+    # eb.scrape_entity("Laskyar Ruins", Category.LOCATIONS, True)
+    # eb.scrape_entity("Ordina, Liturgical Town", Category.LOCATIONS, True)
+    # eb.scrape_entity("Weeping Peninsula", Category.LOCATIONS, True)
+    # eb.scrape_entity("Altus Plateau", Category.LOCATIONS, True)
+    # eb.scrape_entity("Cathedral of the Forsaken", Category.LOCATIONS, True)
+    # eb.scrape_entity("Cathedral of Dragon Communion (Caelid)", Category.LOCATIONS, True)
+
+    # eb.scrape_entity("Teardrop Scarab", Category.ENEMIES, True)
+    # eb.scrape_entity("Depraved Perfumer", Category.ENEMIES, write=True)
+    # eb.scrape_entity("Giant Crab", Category.ENEMIES, write=True)
+    # eb.scrape_entity("Giant Bat", Category.ENEMIES, write=True)
+    # eb.scrape_entity("Lesser Alabaster Lord", Category.ENEMIES, write=True)
+
+    # eb.scrape_entity("Hyetta", Category.NPCS, True)
+    # eb.scrape_entity("Goldmask", Category.NPCS, True)
+    # eb.scrape_entity("Diallos", Category.NPCS, True)
+    # eb.scrape_entity("Bloody Finger Hunter Yura", Category.NPCS, True)
+    # eb.scrape_entity("Fia", Category.NPCS, True)
+    # eb.scrape_entity("Abandoned Merchant Siofra River", Category.NPCS, True)
+    # eb.scrape_entity("Ranni the Witch", Category.NPCS, write=True)
+    # eb.scrape_entity("Renna", Category.NPCS, write=True)
+    # eb.scrape_entity("Preceptor Seluvis", Category.NPCS, write=True)
+    # eb.scrape_entity("Sanguine Noble (NPC)", Category.NPCS, write=True)
+    # eb.scrape_entity("Miriel, Pastor of Vows", Category.NPCS, write=True)
 
     # Examples - Everything but Description truncated
-    # eb.scrape_entity("Hawk Crest Wooden Shield", EntityCategory.SHIELDS, True)
-    # eb.scrape_entity("Ice Crest Shield", EntityCategory.SHIELDS, True)
-    # eb.scrape_entity("Wooden Greatshield", EntityCategory.SHIELDS, True)
-    # eb.scrape_entity("Distinguished Greatshield", EntityCategory.SHIELDS, True)
-    # eb.scrape_entity("Pillory Shield", EntityCategory.SHIELDS, True)
+    # eb.scrape_entity("Hawk Crest Wooden Shield", Category.SHIELDS, True)
+    # eb.scrape_entity("Ice Crest Shield", Category.SHIELDS, True)
+    # eb.scrape_entity("Wooden Greatshield", Category.SHIELDS, True)
+    # eb.scrape_entity("Distinguished Greatshield", Category.SHIELDS, True)
+    # eb.scrape_entity("Pillory Shield", Category.SHIELDS, True)
     
     # Examples - No Description
-    # eb.scrape_entity("Spiked Palisade Shield", EntityCategory.SHIELDS, True)
-    # eb.scrape_entity("Visage Shield", EntityCategory.SHIELDS, True)
+    # eb.scrape_entity("Spiked Palisade Shield", Category.SHIELDS, True)
+    # eb.scrape_entity("Visage Shield", Category.SHIELDS, True)
 
     # Examples - Extra <em>s getting into Description
-    # eb.scrape_entity("Academy Glintstone Staff", EntityCategory.WEAPONS, True)
-    # eb.scrape_entity("Albinauric Staff", EntityCategory.WEAPONS, True)
-    # eb.scrape_entity("Azur's Glintstone Staff", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Academy Glintstone Staff", Category.WEAPONS, True)
+    # eb.scrape_entity("Albinauric Staff", Category.WEAPONS, True)
+    # eb.scrape_entity("Azur's Glintstone Staff", Category.WEAPONS, True)
+    # eb.scrape_entity("Miquellan Knight's Sword", Category.WEAPONS, True)
 
     # Examples - Last line of Description not parsed correctly
-    # eb.scrape_entity("Battle Hammer", EntityCategory.WEAPONS, True)
-    # eb.scrape_entity("Beast-Repellent Torch", EntityCategory.WEAPONS, True)
-    # eb.scrape_entity("Beastman's Cleaver", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Battle Hammer", Category.WEAPONS, True)
+    # eb.scrape_entity("Beast-Repellent Torch", Category.WEAPONS, True)
+    # eb.scrape_entity("Beastman's Cleaver", Category.WEAPONS, True)
 
     # Example - Useless/bad linking to entities in bullets after "Sell Value""
-    # eb.scrape_entity("Albinauric Bow", EntityCategory.WEAPONS, True)
-    # eb.scrape_entity("Alabaster Lord's Sword", EntityCategory.WEAPONS, True)
-    # eb.scrape_entity("Azur's Glintstone Staff", EntityCategory.WEAPONS, True) # Needs targeted fix
-    # eb.scrape_entity("Bloodhound's Fang", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Albinauric Bow", Category.WEAPONS, True)
+    # eb.scrape_entity("Alabaster Lord's Sword", Category.WEAPONS, True)
+    # eb.scrape_entity("Azur's Glintstone Staff", Category.WEAPONS, True) # Needs targeted fix
+    # eb.scrape_entity("Bloodhound's Fang", Category.WEAPONS, True)
 
     # Example - Bad links
-    # eb.scrape_entity("Executioner's Greataxe", EntityCategory.WEAPONS, True)
-    # eb.scrape_entity("Zweihander", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Executioner's Greataxe", Category.WEAPONS, True)
+    # eb.scrape_entity("Zweihander", Category.WEAPONS, True)
 
     # Example - No spaces between sentences separated by a <br>
-    # eb.scrape_entity("Dragon Communion Seal", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Dragon Communion Seal", Category.WEAPONS, True)
 
     # Example - Remaining Video link
-    # eb.scrape_entity("Dragon Halberd", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Dragon Halberd", Category.WEAPONS, True)
 
     # Example - Description not fully italicized
-    # eb.scrape_entity("Duelist Greataxe", EntityCategory.WEAPONS, True) # Includes strange page split
+    # eb.scrape_entity("Duelist Greataxe", Category.WEAPONS, True) # Includes strange page split
 
-    # eb.scrape_entity("Erdtree Seal", EntityCategory.WEAPONS, True) # Includes strange page split
+    # eb.scrape_entity("Erdtree Seal", Category.WEAPONS, True) # Includes strange page split
 
-    # eb.scrape_entity("Wraith Calling Bell", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Wraith Calling Bell", Category.WEAPONS, True)
 
-    # eb.scrape_entity("Wing of Astel", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Wing of Astel", Category.WEAPONS, True)
 
-    # eb.scrape_entity("Varre's Bouquet", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Varre's Bouquet", Category.WEAPONS, True)
 
-    # eb.scrape_entity("Urumi", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Urumi", Category.WEAPONS, True)
 
-    # eb.scrape_entity("Troll's Golden Sword", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Troll's Golden Sword", Category.WEAPONS, True)
 
-    # eb.scrape_entity("Troll Knight's Sword", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Troll Knight's Sword", Category.WEAPONS, True)
 
-    # eb.scrape_entity("Arbalest", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Arbalest", Category.WEAPONS, True)
 
-    # eb.scrape_entity("Bandit's Curved Sword", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Bandit's Curved Sword", Category.WEAPONS, True)
 
     # Example - Everything after Description truncated
-    # eb.scrape_entity("Black Bow", EntityCategory.WEAPONS, True)
+    # eb.scrape_entity("Black Bow", Category.WEAPONS, True)
 
     # Example - Get cut off either in the middle of the Description, or everything after is truncated
-    # eb.scrape_entity("Bastard's Stars", EntityCategory.WEAPONS, write=True)
+    # eb.scrape_entity("Bastard's Stars", Category.WEAPONS, write=True)
 
-    # eb.prepare_entity('Dagger', EntityCategory.WEAPONS)
-    # eb.scrape_entity('Dagger', EntityCategory.WEAPONS)
+    # eb.prepare_entity('Dagger', Category.WEAPONS)
+    # eb.scrape_entity('Dagger', Category.WEAPONS)
     # eb.write_entity('Dagger')
-    #print(eb[EntityCategory.WEAPONS][0])
+    # print(eb[Category.WEAPONS][0])
 
     # logging.basicConfig(level=os.environ.get('LOGLEVEL', 'INFO'))
     # log = logging.getLogger('elden-bring-logger')
@@ -120,26 +189,26 @@ def main():
     # print(eb['Talismans'][0])
     # print(len(eb['Talismans']))
 
-    # eb.prepare_entities(EntityCategory.SKILLS)
-    # eb.scrape_entities(EntityCategory.SKILLS)
-    # print(eb[EntityCategory.SKILLS])
+    # eb.prepare_entities(Category.SKILLS)
+    # eb.scrape_entities(Category.SKILLS)
+    # print(eb[Category.SKILLS])
 
-    # eb.prepare_entities(EntityCategory.WEAPONS, 1)
-    # weapon_names = eb.get_entity_names(EntityCategory.WEAPONS)
+    # eb.prepare_entities(Category.WEAPONS, 1)
+    # weapon_names = eb.get_entity_names(Category.WEAPONS)
     # print(weapon_names)
-    # eb.scrape_entities(EntityCategory.WEAPONS)
-    # eb.write_entities(EntityCategory.WEAPONS)
+    # eb.scrape_entities(Category.WEAPONS)
+    # eb.write_entities(Category.WEAPONS)
 
-    # eb.prepare_entities(EntityCategory.SHIELD, 1)
-    # shield_names = eb.get_entity_names(EntityCategory.SHIELD)
+    # eb.prepare_entities(Category.SHIELD, 1)
+    # shield_names = eb.get_entity_names(Category.SHIELD)
     # print(shield_names)
-    # eb.scrape_entities(EntityCategory.SHIELD)
-    # eb.write_entities(EntityCategory.SHIELD)
+    # eb.scrape_entities(Category.SHIELD)
+    # eb.write_entities(Category.SHIELD)
     
 
-    # eb.prepare_entities(EntityCategory.LEGACY_DUNGEON)
-    # legacy_dungeons_names = eb.get_entity_names(EntityCategory.LEGACY_DUNGEON)
-    # eb.scrape_entity('Stormveil Castle', EntityCategory.LEGACY_DUNGEON)
+    # eb.prepare_entities(Category.LEGACY_DUNGEON)
+    # legacy_dungeons_names = eb.get_entity_names(Category.LEGACY_DUNGEON)
+    # eb.scrape_entity('Stormveil Castle', Category.LEGACY_DUNGEON)
 
     # print(eb['Legacy Dungeons'][0])
 

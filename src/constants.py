@@ -32,12 +32,13 @@ PATH_LORE                   = URL_WIKI_BASE + "/Lore"   # Used for scraping tran
 ## Items pages
 PATH_KEY_ITEMS              = URL_WIKI_BASE + "/Key+Items"
 PATH_ARROWS_AND_BOLTS       = URL_WIKI_BASE + "/Arrows+and+Bolts"
-PATH_BALL_BEARINGS          = URL_WIKI_BASE + "/Bell+Bearings"
+PATH_BELL_BEARINGS          = URL_WIKI_BASE + "/Bell+Bearings"
 PATH_COOKBOOKS              = URL_WIKI_BASE + "/Cookbooks"
 PATH_CONSUMABLES            = URL_WIKI_BASE + "/Consumables"
-PATH_MATERIALS              = URL_WIKI_BASE + "/Materials"
+PATH_CRAFTING_MATERIALS     = URL_WIKI_BASE + "/Materials"
 PATH_CRYSTAL_TEARS          = URL_WIKI_BASE + "/Crystal+Tears"
 PATH_GREAT_RUNES            = URL_WIKI_BASE + "/Great+Runes"
+PATH_INFO_ITEMS             = URL_WIKI_BASE + "/Info+Items"
 PATH_MULTIPLAYER_ITEMS      = URL_WIKI_BASE + "/Multiplayer+Items"
 PATH_REMEMBRANCE            = URL_WIKI_BASE + "/Remembrance"
 PATH_TOOLS                  = URL_WIKI_BASE + "/Tools"
@@ -50,4 +51,4 @@ PATH_SITES_OF_GRACE         = URL_WIKI_BASE + "/Sites+of+Grace"
 
 ## Tags
 # Note: Most tags are derived
-HIDDEN_TAG = "#hide"
+HIDDEN_TAG = "#Hidden"
