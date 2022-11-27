@@ -63,7 +63,7 @@ class EldenBring:
     def create_hidden(self, overwrite=True):
         all_targets = classes + stats + status_effects + armor_type + \
                       spell_type + weapon_type + shield_type + \
-                      hide_list# + items_to_hide
+                      hide_list + sites_of_grace# + items_to_hide
         destination_path = LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_HIDDEN
 
         self.log.info(f"Creating {len(all_targets)} hidden files...")
@@ -90,6 +90,8 @@ class EldenBring:
         self.log.info(f"Preparing {name}...")
         
         entity = Entity(name, category=category)
+
+        # print(entity.name)
 
         if category == '':
             if 'Unknown' not in self.prima_materia:

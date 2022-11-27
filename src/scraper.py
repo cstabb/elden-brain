@@ -196,7 +196,7 @@ class Scraper:
         sections_to_drop = [
             "Moveset", 
             "Upgrades", 
-            "Builds", 
+            "Build", 
             "Shop", 
             "Combat [Ii]nformation", 
             "Gallery", 
@@ -286,6 +286,12 @@ class Scraper:
             r'<h3 class=\"bonfire\">Elden Ring.+[Dd]rop [Rr]ates<\/h3>':    r"## Drops\n\n",
             r'<h3 class=\"bonfire\">Elden Ring.+[Dd]rops<\/h3>':            r"## Drops\n\n",
             r'<h3 class=\"bonfire\">.+[Qq]uest<\/h3>':                      r"## Quest\n\n",
+            r'<h3 class=\"bonfire\">.+[Ss]et [Aa]rmor [Pp]ieces[^<]+<\/h3>':    r"## Set Armor Pieces\n\n",
+            r'<h3 class=\"bonfire\">.+[Ss]et [Pp]ieces[^<]+<\/h3>':         r"## Set Pieces\n\n",
+            r'<h3 class=\"bonfire\">.+[Ss]et in Elden Ring<\/h3>':          r"## Set Information\n\n",
+            r'<h3 class=\"bonfire\">.+Creatures, Enemies, and Bosses<\/h3>':    r"## Creatures, Enemies, and Bosses\n\n",
+            r'<h3 class=\"bonfire\">.+All Items.+<\/h3>':                     r"## Items\n\n",
+            r'<h3 class=\"bonfire\">.+All NPCs and Merchants.+<\/h3>':        r"## NPCs and Merchants\n\n",
         }
         
         # Build a string from contents while replacing headers
@@ -303,7 +309,7 @@ class Scraper:
                     # print(f"MAP AFTER ===\nHEADER={header_regex}\nREMAP{remap}\nKEY={key}")
                     # header = remap
             # print(f"AFTER === {header}")
-            contents_string += header + val
+            contents_string += header + val# + "\n---\n\n"
 
         contents_string = re.sub(r"\<p\>[\s]+\<\/p\>", r"", contents_string)
         contents_string = re.sub(r"<br\/>", r"<br>", contents_string)
@@ -542,7 +548,7 @@ class Scraper:
             for link in row.find_all('a', attrs={'class': 'wiki_link'}):
                 destination = link.get('href')
                 paths.append(destination)
-        print(paths)
+        # print(paths)
         paths = paths[0:-6]   # Last several elements contain throwaway urls
 
         additional_locations = [
@@ -551,11 +557,20 @@ class Scraper:
         ]
 
         paths += additional_locations
-        paths = set(paths)    # Unique the values
-        #print(Scraper.legacy_dungeons)
-        exclude =  set(legacy_dungeons + ["/Legacy+Dungeons", "/Torrent+(Spirit+Steed)"])
 
-        paths = paths - exclude   # drop Legacy Dungeons from list
+        #print(Scraper.legacy_dungeons)
+        # exclude =  set(legacy_dungeons + ["/Legacy+Dungeons", "/Torrent+(Spirit+Steed)"])
+
+        exclude = {
+            "/Legacy+Dungeons", 
+            "/Torrent+(Spirit+Steed)", 
+            "/Wardead+Catacombs", 
+        }
+        exclude = legacy_dungeons + exclude
+
+        paths = paths - exclude
+
+        paths = set(paths)    # Unique the values
 
         return list(paths)
     
@@ -631,10 +646,26 @@ class Scraper:
         #         # destination = '/' + destination.split('/')[-1]
         #         paths.append(destination)
         
+        additions = [
+            "/Tanith's+Knight", 
+            "/Necromancer", 
+            "/Skeletons", 
+            "/Slug", 
+            "/First-Generation+Albinauric", 
+            "/Second-Generation+Albinauric", 
+            "/Bloody+Finger+Okina", 
+            "/Lesser+Sanguine+Noble", 
+            "/Giant+Skeleton+(Spirit)", 
+            "/Redmane+Knight", 
+        ]
+
+        paths += additions
+
         paths = set(paths)    # Unique the values
         
         exclude = {
             "/NPC+Invaders", 
+            "/Scarlet+Rot+Zombie", 
         }
 
         paths = paths - exclude
@@ -649,13 +680,21 @@ class Scraper:
 
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
 
-        # Get all entities from the main NPCs page
         paths = []
+
+        # Get entities from the NPCs page list
+        for row in content_block.find_all('div', attrs={'class': 'col-sm-4'}):
+            destination = row.a.get('href')
+            paths.append(destination)
+            print(f"NPCS LIST = {destination}")
+
+        # Get entities from the NPCs page tag cloud
         for row in content_block.find_all('div', attrs={'id': 'reveal'}):
             for link in row.find_all('a', attrs={'class': 'wiki_link'}):
                 destination = link.get('href')
                 destination = '/' + destination.split('/')[-1]
                 paths.append(destination)
+                print(f"NPCS TAG = {destination}")
 
         # Get all merchants
         response = requests.get(PATH_MERCHANTS)
@@ -667,11 +706,20 @@ class Scraper:
         content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
         for row in content_block.find_all('h4'):
             for link in row.find_all('a', attrs={'class': 'wiki_link'}):
-                print(f"{link}")
+                # print(f"{link}")
                 destination = link.get('href')
-                print(f"{destination}")
+                # print(f"{destination}")
                 paths.append(destination)
         
+        additions = [
+            "/Torrent+(Spirit+Steed)", 
+            "/Volcano+Manor+Spirit", 
+            "/Eleonora,+Violet+Bloody+Finger", 
+            "/Two+Fingers", 
+        ]
+
+        paths += additions
+
         exclude = {
             "/Isolated+Merchants", 
             "/Nomadic+Merchants", 
@@ -721,6 +769,12 @@ class Scraper:
             # entity_name = cells[0]
             # paths.append(entity_name)
 
+        additions = [
+            "/Unblockable+Blade+Skill", 
+        ]
+
+        paths += additions
+
         paths = list(set(paths))    # Unique
         # print(paths)    
         return paths
@@ -737,7 +791,7 @@ class Scraper:
         paths = []
         for link in table_body.find_all('a'):
             path = link.get('href')
-            # paths.append(path)
+            paths.append(path)
         
         # Helms
         response = requests.get(PATH_ARMOR_HELMS)
@@ -755,8 +809,8 @@ class Scraper:
         table_body = soup.find('tbody')
 
         for row in table_body.find_all('tr'):
-            pass
-            # paths.append(row.a.get('href'))
+            # pass
+            paths.append(row.a.get('href'))
 
         # Gauntlets
         response = requests.get(PATH_ARMOR_GAUNTLETS)
@@ -765,8 +819,8 @@ class Scraper:
         table_body = soup.find('tbody')
 
         for row in table_body.find_all('tr'):
-            pass
-            # paths.append(row.a.get('href'))
+            # pass
+            paths.append(row.a.get('href'))
         # paths.remove('/Gauntlets')
 
         # Leg Armor
@@ -776,8 +830,25 @@ class Scraper:
         table_body = soup.find('tbody')
 
         for row in table_body.find_all('tr'):
-            pass
-            # paths.append(row.a.get('href'))
+            # pass
+            paths.append(row.a.get('href'))
+        
+        additions = [
+            "/Perfumer+Traveler's+Set", 
+            "/Nox+Monk+Greaves", 
+            "/Nox+Monk+Bracelets", 
+            "/Ragged+Set", 
+            "/Brave's+Set", 
+
+        ]
+
+        paths += additions
+
+        exclude = {
+            "/Gauntlets", 
+        }
+
+        paths = set(paths) - exclude   # drop Legacy Dungeons from list
         
         paths = list(set(paths))    # Unique
 
@@ -827,7 +898,6 @@ class Scraper:
             paths = self.get_spirit_ashes_paths()
         
         paths.sort()
-        for path in paths:
-            print(path)
+        print('\n'.join(paths))
 
         return paths

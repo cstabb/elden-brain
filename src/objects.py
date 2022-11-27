@@ -19,6 +19,8 @@ classes = [
     "Vagabond", 
     "Prophet", 
     "Samurai", 
+    # Network Test classes
+    "Champion", 
 ]
 
 stats = [
@@ -38,27 +40,36 @@ stats = [
     "PvP", 
     "Poise", 
     "Robustness", 
+    "Stamina", 
     "Immunity", 
     "Equip Load", 
+    "Fall Damage", 
     "Physical Damage", 
     "Standard Damage", 
     "Strike Damage", 
     "Pierce Damage", 
     "Slash Damage", 
     "Critical Damage", 
+    "Magic Damage", 
     "Lightning Damage", 
     "Holy Damage", 
     "Fire Damage", 
+    "Fire Damage Negation", 
+    "Magic Damage Negation", 
     "Physical Defense", 
     "Standard Defense", 
     "Strike Defense", 
     "Pierce Defense", 
     "Slash Defense", 
     "Critical Defense", 
+    "Magic Defense", 
     "Lightning Defense", 
     "Holy Defense", 
     "Fire Defense", 
     "damage types", 
+    "Dodging", 
+    "Guarding", 
+    "Arrows and Bolts" # Subsection of Items
 ]
 
 status_effects = [
@@ -67,6 +78,7 @@ status_effects = [
     "Poison", 
     "Scarlet Rot", 
     "Blood Loss", 
+    "Bleed", 
     "Frostbite", 
     "Sleep", 
     "Madness", 
@@ -116,6 +128,7 @@ items_to_hide = [
 
 spell_type = [
     "Sorceries", 
+    "Sorcery", 
     "Bestial Incantations", 
     "Blood Incantations", 
     "Dragon Communion Incantations", 
@@ -196,6 +209,19 @@ shield_type = [
     "Greatshields", 
 ]
 
+unobtainable = [
+    "/Millicent's+Set", 
+    "/Ragged+Set", 
+    "/Brave's+Set", 
+    "/Deathbed+Set", 
+    "/Deathbed+Smalls", 
+    "/Grass+Hair+Ornament", 
+]
+
+sites_of_grace = [
+    "Saintsbridge", 
+]
+
 hide_list = [
     "Ashes of War", 
     "Consumables", 
@@ -204,12 +230,15 @@ hide_list = [
     "Runes", 
     "Skills", 
     "Bell Bearings", 
+    "Keepsakes", 
     "Smithing Stones", 
     "Somber Smithing Stones", 
     "Patch Notes", 
     "Creatures and Enemies", 
     "New Game Plus", 
     "Upgrades", 
+    "Upgrade Materials", 
+    "Materials", 
     "Crafting", 
     "Crafting Materials", 
     "Cookbooks", 
@@ -220,6 +249,7 @@ hide_list = [
     "Site of Grace", 
     "Skeletons", 
     "Stance", 
+    "Rebirth", 
     "NPC Summons", 
     "NPC Invaders", 
     "Spirit Ashes", 
@@ -230,6 +260,29 @@ hide_list = [
     "Great Runes", 
     "Smithing Stone", 
     "Stake of Marika", 
+    "Remembrance Weapons (Boss Weapons)", 
+    "Network Test and Demo", 
+    "Elden Ring Closed Network Test", 
+    "Bloody Wolf", 
+    "Wiki", 
+    "Player Trade", 
+    "Endings", 
+    "Talismans", 
+    "Side Quests", 
+    "Illusory Walls", 
+    "Memory Slots", 
+    "Mausoleum Compound", 
+    "Waygates", 
+    "Multiplayer Coop and Online", 
+    "Crystal Tears", 
+    "Character Creation", 
+    "Ghost Gloveworts", 
+    "Golden Runes", 
+    "Shields", 
+    "Spiritspring", 
+    "Ballistas", 
+    "Foot Soldier", 
+    "Locations", 
 ]
 
 # List of entities that exhibit parsing issues due to inconsistency with other similar pages
@@ -282,11 +335,38 @@ category_paths = {
 }
 
 name_overrides = {
-    "Ranni the Witch":      "Ranni", 
-    "Preceptor Seluvis":    "Seluvis", 
-    "Monstrous Dog":        "Giant Dog", 
-    "Monstrous Crow":       "Giant Crow", 
-    "Cathedral of Dragon Communion (Caelid)":   "Cathedral of Dragon Communion"
+    "Ranni the Witch":                          "Ranni", 
+    "Torrent (Spirit Steed)":                   "Torrent", 
+    "Preceptor Seluvis":                        "Seluvis", 
+    "Gurranq Beast Clergyman":                  "Gurranq, Beast Clergyman", 
+    "Morgott the Omen King":                    "Morgott, the Omen King", 
+    "Moongrum Carian Knight":                   "Moongrum, Carian Knight", 
+    "Iron Fist Alexander":                      "Alexander", 
+    "Monstrous Dog":                            "Giant Dog", 
+    "Monstrous Crow":                           "Giant Crow",
+    "Gauntlets":                                "Chain Gauntlets", 
+    # Spells
+    "Flame Grant me Strength":                  "Flame, Grant Me Strength", 
+    "Flame Grant Me Strength":                  "Flame, Grant Me Strength", 
+    "Flame Fall Upon Them":                     "Flame, Fall Upon Them", 
+    "Flame Protect Me":                         "Flame, Protect Me", 
+    "Flame Cleanse Me":                         "Flame, Cleanse Me", 
+    "Surge O Flame!":                           "Surge, O Flame!", 
+    "Burn O Flame!":                            "Burn, O Flame!", 
+    "Whirl O Flame!":                           "Whirl, O Flame!", 
+    "O Flame!":                                 "O, Flame!", 
+
+    "Astel Naturalborn of the Void":            "Astel, Naturalborn of the Void", 
+    "Bols Carian Knight":                       "Bols, Carian Knight", 
+    "Skeletons":                                "Skeleton", 
+    "Walking Mausoleum":                        "Wandering Mausoleum", 
+    "Cathedral of Dragon Communion (Caelid)":   "Cathedral of Dragon Communion", 
+    "Rennala, Queen of the Full Moon (NPC)":    "Rennala", 
+    "Kalé's Bell Bearing":                      "Kale's Bell Bearing", 
+    "Wandering Merchant Caelid Highway North":  "Nomadic Merchant Caelid Highway North",
+    "Wandering Merchant Ainsel River":          "Hermit Merchant Ainsel River",
+    "Boc the Seamster":                         "Boc", 
+    "White Mask Varré":                         "White Mask Varre", # Hate to do this, but...
 }
 
 class Entity:
@@ -297,7 +377,7 @@ class Entity:
             name = name_overrides[name]
         except KeyError:
             pass
-        self.name = re.sub(r"\:", r",", name)  # Filenames can't have colons
+        self.name = name
         
         self.category = category
         self.image = image
@@ -325,7 +405,15 @@ class Entity:
                 self.__dict__[name] = value
                 return
             # print(value)
-            markdown = md(value)
+
+            text = value
+
+            # Pre-Markdownify modifications
+            # text = Formatter.prep_varre_e(text)
+
+            # Markdownify
+            markdown = md(text)
+
             markdown = Formatter.remove_hemorrhage_links(markdown)
             markdown = Formatter.remove_video_links(markdown)
             markdown = Formatter.reformat_map_links(markdown)
@@ -343,40 +431,60 @@ class Entity:
             # Misc
             markdown = Formatter.unlink_builds(markdown)
             markdown = Formatter.unlink_special_weaknesses(markdown)
+            # markdown = Formatter.unlink_sites_of_grace(markdown)
             markdown = Formatter.correct_crucible_aspect_spell_names(markdown)
             markdown = Formatter.redirect_ashofwar_skill_links(markdown)
-            markdown = Formatter.replace_varre_e(markdown)
 
             # Unify inconsistent links/names
-            markdown = Formatter.unify_champion_bracers(markdown)
-            markdown = Formatter.unify_raging_wolf_gauntlets(markdown)
+            # markdown = Formatter.unify_champion_bracers(markdown)
+            # markdown = Formatter.unify_raging_wolf_gauntlets(markdown)
             markdown = Formatter.unify_alexander(markdown)
             markdown = Formatter.unify_boc(markdown)
-            markdown = Formatter.unify_rat(markdown)
-            markdown = Formatter.unify_celebrant(markdown)
-            markdown = Formatter.unify_vulgar_militiamen(markdown)
-            markdown = Formatter.unify_miranda_sprout(markdown)
-            markdown = Formatter.unify_giant_miranda_sprout(markdown)
-            markdown = Formatter.unify_lesser_mad_pumpkin_head(markdown)
-            markdown = Formatter.unify_school_of_graven_mages(markdown)
+            markdown = Formatter.unify_imp(markdown)
+
+            markdown = Formatter.unify_astel(markdown)
+            markdown = Formatter.unify_putrid_corpse(markdown)
+            markdown = Formatter.unify_moongrum(markdown)
+            # markdown = Formatter.unify_lesser_mad_pumpkin_head(markdown)
+            # markdown = Formatter.unify_school_of_graven_mages(markdown)
             markdown = Formatter.unify_swamp_of_aeonia(markdown)
+            markdown = Formatter.unify_war_dead_catacombs(markdown)
+            markdown = Formatter.unify_mausoleums(markdown)
+
+            markdown = Formatter.unify_sword_of_st_trina(markdown)
+            markdown = Formatter.unify_flame_grant_me_strength(markdown)
             
             markdown = Formatter.unify_d(markdown)
-            markdown = Formatter.unify_eleonora(markdown)
+            # markdown = Formatter.unify_eleonora(markdown)
+            markdown = Formatter.unify_enia(markdown)
+            markdown = Formatter.unify_ensha(markdown)
             markdown = Formatter.unify_ranni(markdown)
+            markdown = Formatter.unify_gideon_boss(markdown)
             markdown = Formatter.unify_hewg(markdown)
+            markdown = Formatter.unify_hoslow(markdown)
             markdown = Formatter.unify_iji(markdown)
             markdown = Formatter.unify_godfrey(markdown)
+            markdown = Formatter.unify_gurranq(markdown)
+            markdown = Formatter.unify_malenia(markdown)
+            markdown = Formatter.unify_miriel(markdown)
+            markdown = Formatter.unify_seluvis(markdown)
+            markdown = Formatter.unify_varre(markdown)
+            markdown = Formatter.unify_renalla(markdown)
+            markdown = Formatter.unify_torrent(markdown)
+            markdown = Formatter.unify_bernahl(markdown)
 
+            markdown = Formatter.unify_elphael(markdown)
             markdown = Formatter.unify_leyndell(markdown)
             markdown = Formatter.unify_ordina(markdown)
             markdown = Formatter.unify_gelmir(markdown)
             markdown = Formatter.unify_raya_lucaria(markdown)
             markdown = Formatter.unify_liurnia(markdown)
+            markdown = Formatter.unify_sellia(markdown)
 
             # Convert custom text markers to Markdown
             markdown = Formatter.reformat_notes(markdown)
             markdown = Formatter.reify_bullets(markdown)
+            # markdown = Formatter.reify_varre_e(markdown)
 
             if self.category not in [Category.ARMOR]:
                 markdown = Formatter.remove_notes_after_sell_value(markdown)
@@ -386,25 +494,21 @@ class Entity:
 
             if self.category in [Category.ENEMIES]:
                 pass
-
-            # markdown = Formatter.remove_enemies_table(markdown)
-            # markdown = Formatter.remove_npcs_table(markdown)
-            # markdown = Formatter.remove_locations_table(markdown)
-            # markdown = Formatter.remove_key_items_table(markdown)
-            # markdown = Formatter.remove_bell_bearings_table(markdown)
-
+            
             markdown = Formatter.remove_category_links_table(markdown)
             markdown = Formatter.fix_drop_links_inside_tables(markdown)
             markdown = Formatter.add_headers_to_tables(markdown)
+            markdown = Formatter.remove_elden_ring_links(markdown)
 
+            markdown = Formatter.fix_accented_e(markdown)
             markdown = Formatter.final_whitespace_cleanup(markdown)
 
             # Targeted corrections
             markdown = Formatter.perform_targeted_corrections(self.name, markdown)
             markdown = Formatter.condense_newlines(markdown)
             markdown = Formatter.final_whitespace_cleanup(markdown)
-            # # print(repr(markdown))
-            # # print(markdown)
+            # print(repr(markdown))
+            # print(markdown)
             self.__dict__[name] = markdown
         else:
             self.__dict__[name] = value
@@ -423,7 +527,7 @@ class Entity:
     def write(self, additional_tags=[], filename=None):
 
         if filename is None:
-            filename = re.sub(r"\:", r",", self.name)
+            filename = re.sub(r"Note\:", r"Note -", self.name)
 
         path = LOCAL_CACHE + LOCAL_VAULT_NAME
         if self.category is not None:
@@ -458,7 +562,7 @@ class Entity:
             content_md_string = f"{self.content}"
 
         output_str = tags_md_string + image + content_md_string
-        
+        # print(output_str)
         f.write(output_str)
         f.close()
 
