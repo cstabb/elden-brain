@@ -8,6 +8,6 @@ def test_1():
 def test_entity_creation():
     eb = EldenBring()
 
-    eb.scrape_entity('Dagger', EntityCategory.WEAPONS, write=False)
+    eb.scrape_entity('Dagger', Category.WEAPONS, write=False)
 
-    assert eb[EntityCategory.WEAPONS][0].name == 'Dagger'
+    assert eb[Category.WEAPONS][0].name == 'Dagger'
