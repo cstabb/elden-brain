@@ -28,13 +28,13 @@ def main():
     # eb.scrape_entities(Category.BOSSES, write=True) # Locations sneaking in
 
     # eb.scrape_entities(Category.ENEMIES, write=True)
-    # eb.scrape_entities(Category.LOCATIONS, write=True) # Missing Mt Gelmir
-    # eb.scrape_entities(Category.LEGACY_DUNGEONS, write=True)
+    eb.scrape_entities(Category.LOCATIONS, write=True) # Missing Mt Gelmir
+    eb.scrape_entities(Category.LEGACY_DUNGEONS, write=True)
 
-    # eb.scrape_entities(Category.ITEMS, write=True)
-    # eb.scrape_entities(Category.TALISMANS, write=True)
-    # eb.scrape_entities(Category.SPIRIT_ASH, write=True)
-    # eb.scrape_entities(Category.SPELLS, write=True)
+    eb.scrape_entities(Category.ITEMS, write=True)
+    eb.scrape_entities(Category.TALISMANS, write=True)
+    eb.scrape_entities(Category.SPIRIT_ASH, write=True)
+    eb.scrape_entities(Category.SPELLS, write=True)
 
     # eb.scrape_entity("Alberich's Set", Category.ARMOR, True)
     # eb.scrape_entity("Alberich's Pointed Hat", Category.ARMOR, True)

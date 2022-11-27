@@ -561,16 +561,14 @@ class Scraper:
         #print(Scraper.legacy_dungeons)
         # exclude =  set(legacy_dungeons + ["/Legacy+Dungeons", "/Torrent+(Spirit+Steed)"])
 
-        exclude = {
+        exclude = [
             "/Legacy+Dungeons", 
             "/Torrent+(Spirit+Steed)", 
             "/Wardead+Catacombs", 
-        }
-        exclude = legacy_dungeons + exclude
+        ] + legacy_dungeons
 
-        paths = paths - exclude
-
-        paths = set(paths)    # Unique the values
+        # exclude = legacy_dungeons + exclude
+        paths = set(paths) - set(exclude)
 
         return list(paths)
     
