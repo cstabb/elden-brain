@@ -26,6 +26,7 @@ classes = [
 stats = [
     "Stats", 
     "Vigor", 
+    "Vitality", 
     "Mind", 
     "Endurance", 
     "Strength", 
@@ -35,6 +36,7 @@ stats = [
     "Arcane", 
     "Discovery", 
     "Affinities", 
+    "Focus", 
     "HP", 
     "FP", 
     "PvP", 
@@ -42,6 +44,7 @@ stats = [
     "Robustness", 
     "Stamina", 
     "Immunity", 
+    "Hardness", 
     "Equip Load", 
     "Fall Damage", 
     "Physical Damage", 
@@ -161,6 +164,7 @@ spell_type = [
 ]
 
 armor_type = [
+    "Armor", 
     "Gauntlets", 
     "Helms", 
     "Chest Armor", 
@@ -227,6 +231,7 @@ hide_list = [
     "Consumables", 
     "Magic", 
     "Magic Spells", 
+    "Spells", 
     "Runes", 
     "Skills", 
     "Bell Bearings", 
@@ -253,13 +258,15 @@ hide_list = [
     "NPC Summons", 
     "NPC Invaders", 
     "Spirit Ashes", 
+    "Legendary Spirit Ashes", 
     "Gestures", 
     "Bosses", 
     "Lore", 
     "NPCs", 
     "Great Runes", 
     "Smithing Stone", 
-    "Stake of Marika", 
+    "Stakes of Marika", 
+    "Remembrance", 
     "Remembrance Weapons (Boss Weapons)", 
     "Network Test and Demo", 
     "Elden Ring Closed Network Test", 
@@ -283,6 +290,14 @@ hide_list = [
     "Ballistas", 
     "Foot Soldier", 
     "Locations", 
+    "Merchants", 
+    "Nomadic Merchants", 
+    "Divine Towers", 
+    "Erdtree", 
+    "Outer Gods", 
+    "Paintings", 
+    "Multiplayer Items", 
+    "Legendary Armaments",  #TODO: Tag Legendary Armaments, change links to bring up tagged pages
 ]
 
 # List of entities that exhibit parsing issues due to inconsistency with other similar pages
@@ -342,9 +357,10 @@ name_overrides = {
     "Morgott the Omen King":                    "Morgott, the Omen King", 
     "Moongrum Carian Knight":                   "Moongrum, Carian Knight", 
     "Iron Fist Alexander":                      "Alexander", 
-    "Monstrous Dog":                            "Giant Dog", 
-    "Monstrous Crow":                           "Giant Crow",
+    "Giant Dog":                                "Monstrous Dog", 
+    "Giant Crow":                               "Monstrous Crow",
     "Gauntlets":                                "Chain Gauntlets", 
+    "Lesser Kindred of Rot (Pests)":            "Lesser Kindred of Rot", 
     # Spells
     "Flame Grant me Strength":                  "Flame, Grant Me Strength", 
     "Flame Grant Me Strength":                  "Flame, Grant Me Strength", 
@@ -355,7 +371,15 @@ name_overrides = {
     "Burn O Flame!":                            "Burn, O Flame!", 
     "Whirl O Flame!":                           "Whirl, O Flame!", 
     "O Flame!":                                 "O, Flame!", 
-
+    # Skills
+    "Parry Skill":                              "Parry (Skill)", 
+    "Carian Greatsword Skill":                  "Carian Greatsword (Skill)", 
+    "Glintstone Pebble Skill":                  "Glintstone Pebble (Skill)", 
+    "Great Oracular Bubble Skill":              "Great Oracular Bubble (Skill)", 
+    # "Ash of War: No Skill":                    "No Skill", 
+    # "Unblockable Blade Skill":                  "Unblockable Blade (Skill)", 
+    "Flowing Form":                             "Flowing Form (Nox Flowing Sword)", 
+    # Enemies/Bosses
     "Astel Naturalborn of the Void":            "Astel, Naturalborn of the Void", 
     "Bols Carian Knight":                       "Bols, Carian Knight", 
     "Skeletons":                                "Skeleton", 
@@ -445,11 +469,28 @@ class Entity:
             markdown = Formatter.unify_astel(markdown)
             markdown = Formatter.unify_putrid_corpse(markdown)
             markdown = Formatter.unify_moongrum(markdown)
+            markdown = Formatter.unify_rat(markdown)
+            markdown = Formatter.unify_monstrous_crow(markdown)
+            markdown = Formatter.unify_monstrous_dog(markdown)
+            markdown = Formatter.unify_wolf(markdown)
+            markdown = Formatter.unify_kindred(markdown)
+            markdown = Formatter.unify_miranda_sprout(markdown)
+            markdown = Formatter.unify_giant_miranda_sprout(markdown)
             # markdown = Formatter.unify_lesser_mad_pumpkin_head(markdown)
             # markdown = Formatter.unify_school_of_graven_mages(markdown)
+
             markdown = Formatter.unify_swamp_of_aeonia(markdown)
             markdown = Formatter.unify_war_dead_catacombs(markdown)
             markdown = Formatter.unify_mausoleums(markdown)
+            markdown = Formatter.unify_stargazers_ruins(markdown)
+            markdown = Formatter.unify_elphael(markdown)
+            markdown = Formatter.unify_leyndell(markdown)
+            markdown = Formatter.unify_ordina(markdown)
+            markdown = Formatter.unify_gelmir(markdown)
+            markdown = Formatter.unify_raya_lucaria(markdown)
+            markdown = Formatter.unify_liurnia(markdown)
+            markdown = Formatter.unify_sellia(markdown)
+            markdown = Formatter.unify_shaded_castle(markdown)
 
             markdown = Formatter.unify_sword_of_st_trina(markdown)
             markdown = Formatter.unify_flame_grant_me_strength(markdown)
@@ -467,19 +508,16 @@ class Entity:
             markdown = Formatter.unify_gurranq(markdown)
             markdown = Formatter.unify_malenia(markdown)
             markdown = Formatter.unify_miriel(markdown)
+            markdown = Formatter.unify_morgott(markdown)
             markdown = Formatter.unify_seluvis(markdown)
             markdown = Formatter.unify_varre(markdown)
             markdown = Formatter.unify_renalla(markdown)
             markdown = Formatter.unify_torrent(markdown)
             markdown = Formatter.unify_bernahl(markdown)
+            markdown = Formatter.unify_nomadic_merchant_west_liurnia(markdown)
+            markdown = Formatter.unify_hermit_merchant_mountaintops_east(markdown)
 
-            markdown = Formatter.unify_elphael(markdown)
-            markdown = Formatter.unify_leyndell(markdown)
-            markdown = Formatter.unify_ordina(markdown)
-            markdown = Formatter.unify_gelmir(markdown)
-            markdown = Formatter.unify_raya_lucaria(markdown)
-            markdown = Formatter.unify_liurnia(markdown)
-            markdown = Formatter.unify_sellia(markdown)
+            markdown = Formatter.unify_skills(markdown)
 
             # Convert custom text markers to Markdown
             markdown = Formatter.reformat_notes(markdown)
@@ -499,6 +537,7 @@ class Entity:
             markdown = Formatter.fix_drop_links_inside_tables(markdown)
             markdown = Formatter.add_headers_to_tables(markdown)
             markdown = Formatter.remove_elden_ring_links(markdown)
+            markdown = Formatter.remove_remaining_links(markdown)
 
             markdown = Formatter.fix_accented_e(markdown)
             markdown = Formatter.final_whitespace_cleanup(markdown)
@@ -527,7 +566,7 @@ class Entity:
     def write(self, additional_tags=[], filename=None):
 
         if filename is None:
-            filename = re.sub(r"Note\:", r"Note -", self.name)
+            filename = re.sub(r"\:", r" -", self.name)
 
         path = LOCAL_CACHE + LOCAL_VAULT_NAME
         if self.category is not None:

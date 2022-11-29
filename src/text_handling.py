@@ -61,6 +61,12 @@ class Formatter:
     def remove_elden_ring_links(text):
         return re.sub(r"\[Elden Ring\]\(\/Elden\+Ring \"Elden Ring\"\)", r"Elden Ring", text)
     
+    def remove_remaining_links(text):
+        text = re.sub(r"\[here\]\(here\)", r"", text)
+        text = re.sub(r"\[\[Interactive Map|(Minor Erdtrees)\]\]", r"\1", text)
+        text = re.sub(r"\[\[Interactive Map\|\[.+(\])+", r"", text)
+        return text
+    
     def reformat_links(text):
         text = re.sub(r"\[([0-9]{1,2})\]", r"(\1)", text) # Replace bracketed numbers with parentheses (for numbered materials)
         # text =  re.sub(r"\[([^]]+)\]\(\/([^?\[\]]+) \"Elden Ring ([^\[\]]+)\"\)", r"[[\3|\1]]", text)
@@ -82,7 +88,7 @@ class Formatter:
         return re.sub(r"\[\[Ash of War: ", r"[[", text)
 
     def correct_crucible_aspect_spell_names(text):
-        return re.sub(r"Aspect(s)* of the Crucible:", r"Aspects of the Crucible,", text)
+        return re.sub(r"Aspect(s)* of the Crucible:", r"Aspects of the Crucible -", text)
 
     def reformat_map_links(text):
         return re.sub(r"[\[]+([^\]]+)\]\((\/[I|i]nteractive\+[M|m]ap\?[^\ ]+) \"([^\"]+)\"\)\]*\.*", r"[\1](\1)", text)
@@ -91,12 +97,19 @@ class Formatter:
         return re.sub(r"(.+)( \[\[.+#[^\|]+\|\[More [Ii]nfo *\]\]\])", r"\1", text)
 
     def remove_map_links(text):
+        text = re.sub(r"\(\[Map [Ll]ocation\]\(Map [Ll]ocation\)\)", r"", text)
+        text = re.sub(r"\[Map\]\(Map\)", r"", text)
+        text = re.sub(r"\[[Mm]ap\]\([Mm]ap\) [Ll]ink", r"", text)
+        text = re.sub(r" See them on the \[Map\]\(Map\)", r"", text)
         text = re.sub(r" See .+ location in the Interactive Map \[here\]\(here\)", r"", text)
         text = re.sub(r"\[See it on the map here\]\(See it on the map here\)", r"", text)
         text = re.sub(r"\[+(.+)#.+\|\[[Mm]ore [Ii]nfo *\]\]+", r"", text) # Executioner's Greataxe only?
         text = re.sub(r"\[\[map\]\]\(\/Interactive\+Map\?[^\)]+\)", r"", text) # Executioner's Greataxe only?
-        text = re.sub(r"\[\[Map Link\]\]\(\/Interactive\+Map\?[^\)]+\)", r"", text)
-        return re.sub(r"\[(Elden Ring [Mm]ap [Hh]ere|Elden Ring [Mm]ap [Ll]ink [Hh]ere|Map Coordinates|Map [Ll]ink|Elden Ring [Ii]nteractive [Mm]ap [Ll]ink|Elden Ring Map( [Ll]ink)*)\]\(\1\)", r"", text)
+        text = re.sub(r"\[\[[Mm]ap [Ll]ink\]\]\(\/Interactive\+Map[^\)]+\)", r"", text)
+        text = re.sub(r"\[(Elden Ring [Mm]ap [Hh]ere|Elden Ring [Mm]ap [Ll]ink [Hh]ere|[Mm]ap [Cc]oordinates|[Mm]ap [Ll]ink|Elden Ring [Ii]nteractive [Mm]ap [Ll]ink|Elden Ring [Mm]ap( [Ll]ink)*)\]\(\1\)", r"", text)
+        text = re.sub(r"\[\[Elden Ring [Ii]nteractive [Mm]ap [Ll]ink\]\]\(\/Interactive\+[Mm]ap[^\)]+\)", r"", text)
+        text = re.sub(r"\[\[Elden Ring [Mm]ap [Hh]ere\]\]\(\/Interactive\+[Mm]ap[^\)]+\)", r"", text)
+        return text
 
     def remove_notes_after_sell_value(text):
         return re.sub(r"(\* Sell Value: [0-9]+)[\s\S]*", r"\1", text)
@@ -186,13 +199,13 @@ class Formatter:
     # def unify_celebrant(text):
     #     return re.sub(r"\[\[Festive Dancer\|(.+)\]\]", r"[[Celebrant|Celebrant]]", text)
 
-    # def unify_miranda_sprout(text):
-    #     text = re.sub(r"\[\[Poison Flower\|(.+)\]\]", r"[[Miranda Sprout|Miranda Sprout]]", text)
-    #     return re.sub(r"\[\[Miranda Flower\|(.+)\]\]", r"[[Miranda Sprout|Miranda Sprout]]", text)
+    def unify_miranda_sprout(text):
+        text = re.sub(r"\[\[Poison Flower\|(.+)\]\]", r"[[Miranda Sprout|Miranda Sprout]]", text)
+        return re.sub(r"\[\[Miranda Flower\|(.+)\]\]", r"[[Miranda Sprout|Miranda Sprout]]", text)
 
-    # def unify_giant_miranda_sprout(text):
-    #     text = re.sub(r"\[\[Giant Poison Flower\|(.+)\]\]", r"[[Giant Miranda Sprout|Giant Miranda Sprout]]", text)
-    #     return re.sub(r"\[\[Giant Miranda Flower\|(.+)\]\]", r"[[Giant Miranda Sprout|Giant Miranda Sprout]]", text)
+    def unify_giant_miranda_sprout(text):
+        text = re.sub(r"\[\[Giant Poison Flower\|(.+)\]\]", r"[[Giant Miranda Sprout|Giant Miranda Sprout]]", text)
+        return re.sub(r"\[\[Giant Miranda Flower\|(.+)\]\]", r"[[Giant Miranda Sprout|Giant Miranda Sprout]]", text)
     
     # def unify_lesser_mad_pumpkin_head(text):
     #     return re.sub(r"\[\[Lesser (Mad )*Pumpkin Head\|(.+)\]\]", r"[[Lesser Mad Pumpkin Head|Lesser Mad Pumpkin Head]]", text)
@@ -200,8 +213,14 @@ class Formatter:
     # def unify_school_of_graven_mages(text):
     #     return re.sub(r"Arcane Sphere of Faces", r"School of Graven Mages", text)
 
+    def unify_shaded_castle(text):
+        return re.sub(r"\[\[Shaded Castle\|(.+)\]\]", r"[[The Shaded Castle|\1]]", text)
+
     def unify_swamp_of_aeonia(text):
         return re.sub(r"\[\[Aeonia Swamp\|(.+)\]\]", r"[[Swamp of Aeonia|\1]]", text)
+    
+    def unify_stargazers_ruins(text):
+        return re.sub(r"\[\[Stargazer\'s Ruins\|(.+)\]\]", r"[[Stargazers' Ruins|Stargazer' Ruins]]", text)
     
     def unify_war_dead_catacombs(text):
         return re.sub(r"\[\[War-[Dd]ead [Cc]atacombs\|(.+)\]\]", r"[[The War-Dead Catacombs|\1]]", text)
@@ -231,6 +250,9 @@ class Formatter:
     
     def unify_iji(text):
         return re.sub(r"Smithing Master Iji", r"War Counselor Iji", text)
+    
+    def unify_morgott(text):
+        return re.sub(r"Morgott [Tt]he Omen King", r"Morgott, the Omen King", text)
         
     def unify_godfrey(text):
         return re.sub(r"\[\[Hoarah Loux,* Warrior\|(.+)\]\]", r"[[Godfrey, First Elden Lord|\1]]", text)
@@ -239,7 +261,8 @@ class Formatter:
         return re.sub(r"\[\[Gurranq Beast Clergyman\|(.+)\]\]", r"[[Gurranq, Beast Clergyman|\1]]", text)
     
     def unify_renalla(text):
-        return re.sub(r"\[\[Rennala,* Queen of the Full Moon\|(.+)\]\]", r"[[Rennala|\1]]", text)
+        text = re.sub(r"\[\[Rennala,* Queen of the Full Moon \(NPC\)\|(.+)\]\]", r"[[Rennala|\1]]", text)
+        return re.sub(r"\[\[Rennala,* Queen of the Full Moon\|(.+)\]\]", r"[[Rennala, Queen of the Full Moon|\1]]", text)
     
     def unify_bernahl(text):
         return re.sub(r"\[\[Recusant Bernahl\|(.+)\]\]", r"[[Knight Bernahl|\1]]", text)
@@ -270,16 +293,48 @@ class Formatter:
         return re.sub(r"\[\[Elphael Brace of the Haligtree\|(.+)\]\]", r"[[Elphael, Brace of the Haligtree|\1]]", text)
 
     def unify_leyndell(text):
+        text = re.sub(r"\[\[Leyndell\|(.+)\]\]", r"[[Leyndell, Royal Capital|\1]]", text)
         return re.sub(r"\[\[Leyndell[,]* Royal Capital\|(.+)\]\]", r"[[Leyndell, Royal Capital|\1]]", text)
     
     def unify_gelmir(text):
         return re.sub(r"\[\[Mt\. Gelmir\|(.+)\]\]", r"[[Mt Gelmir|\1]]", text)
 
     def unify_mausoleums(text):
-        return re.sub(r"\[\[Walking Mausoleum\|Walking Mausoleum(.+)\]\]", r"[[Wandering Mausoleum|Wandering Mausoleum\1]]", text)
+        return re.sub(r"\[\[Walking Mausoleum\|(.+)\]\]", r"[[Wandering Mausoleum|\1]]", text)
     
     def unify_raya_lucaria(text):
         return re.sub(r"\[\[Academy of Raya Lucaria\|(.+)\]\]", r"[[Raya Lucaria Academy|\1]]", text)
+    
+    def unify_rat(text):
+        return re.sub(r"\[\[Rat\|(.+)\]\]", r"[[Giant Rat|\1]]", text)
+
+    def unify_nomadic_merchant_west_liurnia(text):
+        text = re.sub(r"\[\[Nomadic Merchant Liurnia of [Tt]he Lakes\|(.+)\]\]", r"[[Nomadic Merchant West Liurnia of the Lakes|\1]]", text)
+        return re.sub(r"\[\[Nomadic Merchant West Liurnia of The Lakes\|(.+)\]\]", r"[[Nomadic Merchant West Liurnia of the Lakes|\1]]", text)
+
+    def unify_hermit_merchant_mountaintops_east(text):
+        return re.sub(r"\[\[Nomadic Merchant Mountaintops East\|(.+)\]\]", r"[[Hermit Merchant Mountaintops East|Hermit Merchant Mountaintops East]]", text)
+    
+    def unify_monstrous_crow(text):
+        text = re.sub(r"\[\[Giant Crow\|(.+)\]\]", r"[[Monstrous Crow|\1]]", text)
+        return re.sub(r"\[\[Monstrous Crow\|(.+)\]\]", r"[[Monstrous Crow|\1]]", text)
+    
+    def unify_monstrous_dog(text):
+        text = re.sub(r"\[\[Giant Dog\|(.+)\]\]", r"[[Monstrous Dog|\1]]", text)
+        return re.sub(r"\[\[Monstrous Dog\|(.+)\]\]", r"[[Monstrous Dog|\1]]", text)
+    
+    def unify_wolf(text):
+        return re.sub(r"\[\[Wolf\|(.+)\]\]", r"[[Lone Wolf|\1]]", text)
+    
+    def unify_kindred(text):
+        # text = re.sub(r"\[\[Lesser Kindred of Rot \(Pests\)\|(.+)\]\]", r"[[Lesser Kindred of Rot|\1]]", text)
+        return re.sub(r"\[\[Lesser Kindred of Rot \(Pests\)\|(.+)\]\]", r"[[Lesser Kindred of Rot|\1]]", text)
+    
+    def unify_skills(text):
+        text = re.sub(r"\[\[Carian Greatsword Skill\|(.+)\]\]", r"[[Carian Greatsword (Skill)|\1]]", text)
+        text = re.sub(r"\[\[Parry Skill\|(.+)\]\]", r"[[Parry (Skill)|\1]]", text)
+        text = re.sub(r"\[\[Glintstone Pebble Skill\|(.+)\]\]", r"[[Glintstone Pebble (Skill)|\1]]", text)
+        return re.sub(r"\[\[Great Oracular Bubble Skill\|(.+)\]\]", r"[[Great Oracular Bubble (Skill)|\1]]", text)
     
     # def unify_mt_gelmir(text):
     #     return re.sub(r"\[\[(Mt\. Gelmir)\|(Mt\. Gelmir)\]\]", r"[[Mt Gelmir|\2]]", text)
@@ -317,6 +372,8 @@ class Formatter:
             correction = Formatter.condense_newlines(correction)
         # elif name == "Ancestral Spirit's Horn":
         #     correction = re.sub(r"\| \[\[([^\|]+)\|Elden Ring [^\]]+\]\] \|[\s\S]*", r"", text)
+        elif name == "Aspects of the Crucible: Horns":
+            correction = re.sub(r"\[Ramparts\]\(Ramparts\)", r"Ramparts", text)
         elif name == "Assassin's Crimson Dagger":
             correction = re.sub(r" See Assassin's Crimson Dagger location in the Interactive Map \[here\]\(here\)", r"", text)
         elif name == "Battle Axe":
@@ -341,6 +398,12 @@ class Formatter:
             correction = re.sub(r"\[Prayer Room\]\(\/Interactive\+Map[^\)]+\)", r"Prayer Room", text)
         elif name == "Kaiden Set":
             correction = re.sub(r"\[camp\]\(camp\)", r"camp", text)
+        elif name in ["Land Octopus", "Giant Land Octopus"]:
+            correction = re.sub(r"\[Temple Quarter\]\(\/Interactive[^\)]+\)", r"Temple Quarter", text)
+        elif name == "Margit, the Fell Omen":
+            correction = re.sub(r"\[\[Map Link.*", r"", text)
+        elif name == "Mausoleum Soldier Ashes":
+            correction = re.sub(r"\[\[Mausoleum\|Mausoleum\]\]", r"Mausoleum", text)
         elif name == "Miquella's Lily":
             correction = re.sub(r"\[\[Map Link\]\(\/Interactive\+Map\?[^\)]+\)\]", r"", text)
         elif name == "Royal Greatsword":
@@ -349,10 +412,14 @@ class Formatter:
             correction = re.sub(r"\+ \[Example farming route\]\(\/file\/Elden\-Ring\/vulgar\_militia\_saw\.png \"Example farming route\"\)", r"", text)
         elif name == "Flowing Curved Sword":
             correction = re.sub(r" See it on the +\.", r"", text)
-        elif name == "Nox Flowing Hammer":
-            correction = re.sub(r"\[\[(Flowing Form) \(Nox Flowing Hammer\)", r"[[\1", text)
+        elif name == "Nox Flowing Sword":
+            correction = re.sub(r"\[\[(Flowing Form)", r"[[\1 (Nox Flowing Sword)", text)
+        # elif name == "Nox Flowing Hammer":
+        #     correction = re.sub(r"\[\[(Flowing Form) \(Nox Flowing Hammer\)", r"[[\1", text)
         elif name in ["Sorcerer Manchettes", "Ragged Wolf Set"]:
             correction = re.sub(r"\[\[VS ", r"[[", text)
+        elif name == "Smithing-Stone Miner's Bell Bearing (3)":
+            correction = re.sub(r"\[Click on the image above to enlarge it.*", r"", text)
         elif name == "St. Trina's Arrow":
             correction = re.sub(r" \[Map Link\]\(.+\"\)", r"", text)
         elif name == "Torrent":

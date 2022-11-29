@@ -15,6 +15,9 @@ class Scraper:
     def __init__(self, logger):
         self.log = logger
 
+    def convert_path_to_entity(self, path):
+        return path.split('/')[-1].replace('+', ' ')
+
     def convert_paths_to_entities(self, paths=[], category=''):
         """
         Convert a list of URLs into entity objects.
@@ -25,7 +28,7 @@ class Scraper:
 
         entities = []
         for idx, path in enumerate(paths):
-            entity_name = path.split('/')[-1].replace('+', ' ')
+            entity_name = self.convert_path_to_entity(path)
 
             if entity_name in blacklist:
                 continue
@@ -33,6 +36,8 @@ class Scraper:
             entity = Entity(entity_name, category=category)
 
             entities.append(entity)
+
+        entities = list(set(entities))    # Unique the values
 
         return entities
 
@@ -50,10 +55,16 @@ class Scraper:
         skills_data = {}
         for row in table_body.find_all('tr'):
             cells = row.find_all('td')
-            cells = [ele.text.strip() for ele in cells]
-            name = cells[0]
-            description = cells[5]
-            #print(f"{entity_name}")
+            # cells = [ele.text.strip() for ele in cells]
+            try:
+                path = cells[0].a.get('href')
+            except:
+                path = "/No+Skill"
+            # print(f"PATH === {path}")
+            name = self.convert_path_to_entity(path)
+            description = str(cells[5])
+            # print(f"NAME === {name}")
+            # print(f"{description}")
             skills_data[name] = description
         
         return skills_data
@@ -131,19 +142,23 @@ class Scraper:
             infobox = content_block.find('div', attrs={'class', 'infobox'})
 
         ## Process the item's main image
-        image_tag = infobox.find('img') # First img tag always contains what we want
-        image_src = image_tag['src']
+        image = None
+        try:
+            image_tag = infobox.find('img') # First img tag always contains what we want
+            image_src = image_tag['src']
 
-        image_name = image_src.split('/')[-1]
-        if "discordapp" in image_src:
-            image_url = image_src
-        else:
-            image_url = URL_WIKI_BASE + image_src
-        image_data = requests.get(image_url).content
-        image = Image(image_data, image_name)
+            image_name = image_src.split('/')[-1]
+            if "discordapp" in image_src:
+                image_url = image_src
+            else:
+                image_url = URL_WIKI_BASE + image_src
+            image_data = requests.get(image_url).content
+            image = Image(image_data, image_name)
 
-        if force_image_download or not os.path.isfile(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + image_name):
-            image.write()
+            if force_image_download or not os.path.isfile(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + image_name):
+                image.write()
+        except:
+            pass
 
         # Throw out all other img tags
         for img in content_block("img"):
@@ -567,7 +582,6 @@ class Scraper:
             "/Wardead+Catacombs", 
         ] + legacy_dungeons
 
-        # exclude = legacy_dungeons + exclude
         paths = set(paths) - set(exclude)
 
         return list(paths)
@@ -655,6 +669,9 @@ class Scraper:
             "/Lesser+Sanguine+Noble", 
             "/Giant+Skeleton+(Spirit)", 
             "/Redmane+Knight", 
+            "/Large+Oracle+Envoy", 
+            "/Man-Serpent+Sorcerer", 
+            "/Silver+Sphere", 
         ]
 
         paths += additions
@@ -721,6 +738,7 @@ class Scraper:
         exclude = {
             "/Isolated+Merchants", 
             "/Nomadic+Merchants", 
+            "/Nomadic+Merchant+Mohgwyn+Palace", 
             "/Volcano+Manor+Spirit", 
             "/Merchants#blacksmithing", 
             "/Merchants#equipment", 
@@ -768,7 +786,7 @@ class Scraper:
             # paths.append(entity_name)
 
         additions = [
-            "/Unblockable+Blade+Skill", 
+            "/No+Skill", 
         ]
 
         paths += additions
@@ -837,7 +855,7 @@ class Scraper:
             "/Nox+Monk+Bracelets", 
             "/Ragged+Set", 
             "/Brave's+Set", 
-
+            "/Deathbed+Set", 
         ]
 
         paths += additions

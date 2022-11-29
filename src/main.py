@@ -19,22 +19,24 @@ def main():
     # hidden_entities = eb.scrape_entities(hidden_entities_names, write=True, directory="/Hidden") # If entities have already been scraped, don't rescrape
     # eb.write_entities(hidden_entities, directory="/Hidden") # Redundant if the above has been run; will rewrite over files just created
     
-    eb.create_hidden()
+    # eb.create_hidden()
 
     # eb.scrape_entities(Category.WEAPONS, write=True)
     # eb.scrape_entities(Category.SHIELDS, write=True)
     # eb.scrape_entities(Category.ARMOR, write=True)
-    # eb.scrape_entities(Category.NPCS, write=True) # Missing NOMADIC MERCHANT CAELID SOUTH, 
-    # eb.scrape_entities(Category.BOSSES, write=True) # Locations sneaking in
+    # eb.scrape_entities(Category.NPCS, write=True)
+    # eb.scrape_entities(Category.BOSSES, write=True)
 
     # eb.scrape_entities(Category.ENEMIES, write=True)
-    eb.scrape_entities(Category.LOCATIONS, write=True) # Missing Mt Gelmir
-    eb.scrape_entities(Category.LEGACY_DUNGEONS, write=True)
+    # eb.scrape_entities(Category.LOCATIONS, write=True)
+    # eb.scrape_entities(Category.LEGACY_DUNGEONS, write=True)
 
-    eb.scrape_entities(Category.ITEMS, write=True)
-    eb.scrape_entities(Category.TALISMANS, write=True)
-    eb.scrape_entities(Category.SPIRIT_ASH, write=True)
-    eb.scrape_entities(Category.SPELLS, write=True)
+    # eb.scrape_entities(Category.ITEMS, write=True)
+    # eb.scrape_entities(Category.TALISMANS, write=True)
+    # eb.scrape_entities(Category.SPIRIT_ASH, write=True)
+    # eb.scrape_entities(Category.SPELLS, write=True)
+
+    # eb.scrape_entities(Category.SKILLS, write=True)
 
     # eb.scrape_entity("Alberich's Set", Category.ARMOR, True)
     # eb.scrape_entity("Alberich's Pointed Hat", Category.ARMOR, True)
@@ -64,15 +66,23 @@ def main():
     # eb.scrape_entity("Prophet Set", Category.ARMOR, True)
     # eb.scrape_entity("Brave's Set", Category.ARMOR, True)
     # eb.scrape_entity("Sorcerer Manchettes", Category.ARMOR, True)
+    # eb.scrape_entity("Fur Leggings", Category.ARMOR, True)
+    # eb.scrape_entity("Scaled Helm", Category.ARMOR, True)
 
     # eb.scrape_entity("Cipher Pata", Category.WEAPONS, True)
     # eb.scrape_entity("Beastclaw Greathammer", Category.WEAPONS, True)
-    # eb.scrape_entity("Noble's Estoc", Category.WEAPONS, True)
+    # # eb.scrape_entity("Noble's Estoc", Category.WEAPONS, True)
+    # eb.scrape_entity("Nox Flowing Sword", Category.WEAPONS, True)
+    # eb.scrape_entity("Nox Flowing Hammer", Category.WEAPONS, True)
 
     # eb.scrape_entity("Aspects of the Crucible: Breath", Category.SPELLS, True)
     # eb.scrape_entity("Aspects of the Crucible: Horns", Category.SPELLS, True)
     # eb.scrape_entity("Aspects of the Crucible: Tail", Category.SPELLS, True)
     # eb.scrape_entity("Flame Fall Upon Them", Category.SPELLS, True)
+    # eb.scrape_entity("Flame, Grant Me Strength", Category.SPELLS, True)
+    # eb.scrape_entity("Gelmir's Fury", Category.SPELLS, True)
+    # eb.scrape_entity("Black Flame's Protection", Category.SPELLS, True)
+    # eb.scrape_entity("Aspects of the Crucible: Horns", Category.SPELLS, True)
 
     # eb.scrape_entity("Aspect of the Crucible: Breath", Category.SPELLS, True)
 
@@ -94,6 +104,15 @@ def main():
     # eb.scrape_entity("St. Trina's Arrow", Category.ITEMS, True)
     # eb.scrape_entity("Kale's Bell Bearing", Category.ITEMS, True)
     # eb.scrape_entity("Miquella's Lily", Category.ITEMS, True)
+    # eb.scrape_entity("Deathroot", Category.ITEMS, True)
+    # eb.scrape_entity("Fire Monks' Prayerbook", Category.ITEMS, True)
+    # eb.scrape_entity("Smithing-Stone Miner's Bell Bearing (3)", Category.ITEMS, True)
+    # eb.scrape_entity("Somberstone Miner's Bell Bearing (1)", Category.ITEMS, True)
+    # eb.scrape_entity("Nomadic Merchant's Bell Bearing (9)", Category.ITEMS, True)
+    # eb.scrape_entity("Armorer's Cookbook (6)", Category.ITEMS, True)
+    # eb.scrape_entity("Shabriri Grape", Category.ITEMS, True)
+    # eb.scrape_entity("Grace Mimic", Category.ITEMS, True)
+    # eb.scrape_entity("Rune Arc", Category.ITEMS, True)
     
 
     # eb.scrape_entity("Ancestral Spirit's Horn", Category.TALISMANS, True)
@@ -101,6 +120,7 @@ def main():
 
     # eb.scrape_entity("Ancient Dragon Knight Kristoff Ashes", Category.SPIRIT_ASH, True)
     # eb.scrape_entity("Dolores the Sleeping Arrow Puppet", Category.SPIRIT_ASH, True)
+    # eb.scrape_entity("Mausoleum Soldier Ashes", Category.SPIRIT_ASH, True)
 
 
 
@@ -115,6 +135,10 @@ def main():
     # eb.scrape_entity("Black Knife Assassin", Category.BOSSES, write=True)
     # eb.scrape_entity("Godskin Apostle", Category.BOSSES, write=True)
     # eb.scrape_entity("Loretta, Knight of the Haligtree", Category.BOSSES, write=True)
+    # eb.scrape_entity("Margit, the Fell Omen", Category.BOSSES, write=True)
+    # eb.scrape_entity("Demi-Human Queen Maggie", Category.BOSSES, write=True)
+    # eb.scrape_entity("Demi-Human Queen Gilika", Category.BOSSES, write=True)
+    # eb.scrape_entity("Demi-Human Queen Margot", Category.BOSSES, write=True)
 
     # eb.scrape_entity("Roundtable Hold", Category.LOCATIONS, True)
     # eb.scrape_entity("Abandoned Cave", Category.LOCATIONS, True)
@@ -132,6 +156,7 @@ def main():
     # eb.scrape_entity("Cathedral of Dragon Communion", Category.LOCATIONS, True)
     # eb.scrape_entity("Consecrated Snowfield", Category.LOCATIONS, True)
     # eb.scrape_entity("Wandering Mausoleum", Category.LOCATIONS, True)
+    # eb.scrape_entity("Mt Gelmir", Category.LOCATIONS, True)
 
     # eb.scrape_entity("Teardrop Scarab", Category.ENEMIES, True)
     # eb.scrape_entity("Depraved Perfumer", Category.ENEMIES, write=True)
@@ -144,6 +169,9 @@ def main():
     # eb.scrape_entity("Skeletons", Category.ENEMIES, write=True)
     # eb.scrape_entity("Slug", Category.ENEMIES, write=True)
     # eb.scrape_entity("Springhare", Category.ENEMIES, write=True)
+    # eb.scrape_entity("Baleful Shadow", Category.ENEMIES, write=True)
+    # eb.scrape_entity("Giant Land Octopus", Category.ENEMIES, write=True)
+    # eb.scrape_entity("Land Octopus", Category.ENEMIES, write=True)
 
     # eb.scrape_entity("Blaidd", Category.NPCS, True)
     # eb.scrape_entity("Hyetta", Category.NPCS, True)
@@ -168,6 +196,10 @@ def main():
     # eb.scrape_entity("Torrent (Spirit Steed)", Category.NPCS, write=True)
     # eb.scrape_entity("Eleonora, Violet Bloody Finger", Category.NPCS, write=True)
     # eb.scrape_entity("Renna", Category.NPCS, write=True)
+    # eb.scrape_entity("Dung Eater", Category.NPCS, write=True)
+    # eb.scrape_entity("Volcano Manor Spirit", Category.NPCS, write=True)
+    # eb.scrape_entity("Melina", Category.NPCS, write=True)
+    # eb.scrape_entity("Kingsrealm Spirit", Category.NPCS, write=True)
 
     # eb.scrape_entity("Unblockable Blade Skill", Category.SKILLS, write=True)
 

@@ -167,11 +167,16 @@ class EldenBring:
                         entity.write()
         elif category == Category.SKILLS:
             skills_data = self.scraper.scrape_skills_data()
+            # print(skills_data["Great Oracular Bubble Skill"])
+            skills_data = { name_overrides.get(k, k): v for k, v in skills_data.items() }
+            # print(new_dict["Great Oracular Bubble (Skill)"])
             for entity in self.prima_materia[Category.SKILLS]:
                 if entity.name in skills_data:
-                    entity.content = {'Description': skills_data[entity.name]}
+                    # print(f"NAME: {entity.name}\n{skills_data[entity.name]}")
+                    entity.content = skills_data[entity.name]
                 if write:
                     entity.write()
+                    time.sleep(0.001)
         else:
             for i, entity in enumerate(self.prima_materia[category]):
                 self.log.info(f"Scraping {entity.name} [{i+1} of {len(self.prima_materia[category])}]...")
