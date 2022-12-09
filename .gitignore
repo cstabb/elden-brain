@@ -6,4 +6,6 @@
 /tests
 /tests/*
 /.VSCodeCounter
+
 elden_bring.code-workspace
+config.int
