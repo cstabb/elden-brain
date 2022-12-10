@@ -1,6 +1,7 @@
 /target
 /assets
 /cache/*
+/cache_full/*
 /.vscode
 /env
 /tests
