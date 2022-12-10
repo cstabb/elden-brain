@@ -1,54 +1,64 @@
+from config import ConfigReader
+
+cfg = ConfigReader()
+
+def urlify(name=''):
+    return name.replace(' ', '+')
+
 ### The wiki URL
-URL_WIKI_BASE = "https://eldenring.wiki.fextralife.com"
+WIKI_URL = cfg.wiki_url
 
 ### Local directories
-LOCAL_CACHE = "cache/"
-LOCAL_VAULT_NAME = "Elden Ring/"
-LOCAL_ASSETS = "Assets/"    # If this is set, also set Obsidian's Attachment folder path to the same value (found in Settings->Files & Links)
-LOCAL_HIDDEN = "Hidden/"
+LOCAL_CACHE = cfg.cache_location
+LOCAL_VAULT_NAME = cfg.vault_name
+LOCAL_ASSETS = (cfg.remap_assets_to if cfg.remap_assets else 'Assets') + '/'    # If this is set, also set Obsidian's Attachment folder path to the same value (found in Settings->Files & Links)
+LOCAL_HIDDEN = (cfg.remap_hidden_to if cfg.remap_hidden else 'Hidden') + '/'
 
-### Paths (relative to URL_WIKI_BASE)
+### Paths (relative to the wiki url)
 ## Mid-Level paths
-PATH_WEAPONS                = URL_WIKI_BASE + "/Weapons"
-PATH_SPIRIT_ASHES           = URL_WIKI_BASE + "/Spirit+Ashes"
-PATH_SKILLS                 = URL_WIKI_BASE + "/Skills"
-PATH_SPELLS                 = URL_WIKI_BASE + "/Magic+Spells"
-PATH_SHIELDS                = URL_WIKI_BASE + "/Shields"
-PATH_ARMOR                  = URL_WIKI_BASE + "/Armor"
-PATH_ARMOR_HELMS            = URL_WIKI_BASE + "/Helms"
-PATH_ARMOR_CHESTS           = URL_WIKI_BASE + "/Chest+Armor"
-PATH_ARMOR_GAUNTLETS        = URL_WIKI_BASE + "/Gauntlets"
-PATH_ARMOR_LEGS             = URL_WIKI_BASE + "/Leg+Armor"
-PATH_TALISMANS              = URL_WIKI_BASE + "/Talismans"
-PATH_CREATURES_AND_ENEMIES  = URL_WIKI_BASE + "/Creatures+and+Enemies"
-PATH_BOSSES                 = URL_WIKI_BASE + "/Bosses"
-PATH_LEGACY_DUNGEONS        = URL_WIKI_BASE + "/Legacy+Dungeons"
-PATH_LOCATIONS              = URL_WIKI_BASE + "/Locations"
-PATH_NPCS                   = URL_WIKI_BASE + "/NPCs"
-PATH_MERCHANTS              = URL_WIKI_BASE + "/Merchants"
-PATH_ITEMS                  = URL_WIKI_BASE + "/Items"  # Not used--item index pages are listed below
-PATH_LORE                   = URL_WIKI_BASE + "/Lore"   # Used for scraping transcripts
+PATH_WEAPONS                = WIKI_URL + '/' + cfg.remap_weapons_to
+PATH_SPIRIT_ASHES           = WIKI_URL + '/' + cfg.remap_spirit_ashes_to
+PATH_SKILLS                 = WIKI_URL + '/' + cfg.remap_skills_to
+PATH_SPELLS                 = WIKI_URL + '/' + cfg.remap_spells_to
+PATH_SHIELDS                = WIKI_URL + '/' + cfg.remap_shields_to
+PATH_ARMOR                  = WIKI_URL + '/' + cfg.remap_armor_to
+# PATH_ARMOR_HELMS            = WIKI_URL + '/' + cfg.remap_helms_to
+# PATH_ARMOR_CHESTS           = WIKI_URL + '/' + cfg.remap_chest_armor_to
+# PATH_ARMOR_GAUNTLETS        = WIKI_URL + '/' + cfg.remap_gauntlets_to
+# PATH_ARMOR_LEGS             = WIKI_URL + '/' + cfg.remap_leg_armor_to
+PATH_TALISMANS              = WIKI_URL + '/' + cfg.remap_talismans_to
+PATH_CREATURES_AND_ENEMIES  = WIKI_URL + '/' + cfg.remap_creatures_and_enemies_to
+PATH_BOSSES                 = WIKI_URL + '/' + cfg.remap_bosses_to
+PATH_LEGACY_DUNGEONS        = WIKI_URL + '/' + cfg.remap_legacy_dungeons_to
+PATH_LOCATIONS              = WIKI_URL + '/' + cfg.remap_locations_to
+PATH_NPCS                   = WIKI_URL + '/' + cfg.remap_npcs_to
+PATH_MERCHANTS              = WIKI_URL + '/' + cfg.remap_merchants_to
+PATH_LORE                   = WIKI_URL + '/' + cfg.remap_lore_to   # Used for scraping transcripts
+PATH_ITEMS                  = WIKI_URL + '/' + cfg.remap_items_to  # Not used--item index pages are listed below
 
-## Items pages
-PATH_KEY_ITEMS              = URL_WIKI_BASE + "/Key+Items"
-PATH_ARROWS_AND_BOLTS       = URL_WIKI_BASE + "/Arrows+and+Bolts"
-PATH_BELL_BEARINGS          = URL_WIKI_BASE + "/Bell+Bearings"
-PATH_COOKBOOKS              = URL_WIKI_BASE + "/Cookbooks"
-PATH_CONSUMABLES            = URL_WIKI_BASE + "/Consumables"
-PATH_CRAFTING_MATERIALS     = URL_WIKI_BASE + "/Materials"
-PATH_CRYSTAL_TEARS          = URL_WIKI_BASE + "/Crystal+Tears"
-PATH_GREAT_RUNES            = URL_WIKI_BASE + "/Great+Runes"
-PATH_INFO_ITEMS             = URL_WIKI_BASE + "/Info+Items"
-PATH_MULTIPLAYER_ITEMS      = URL_WIKI_BASE + "/Multiplayer+Items"
-PATH_REMEMBRANCE            = URL_WIKI_BASE + "/Remembrance"
-PATH_TOOLS                  = URL_WIKI_BASE + "/Tools"
-PATH_WHETBLADES             = URL_WIKI_BASE + "/Whetblades"
-PATH_UPGRADE_MATERIALS      = URL_WIKI_BASE + "/Upgrade+Materials"
+## Item sub-categories
+PATH_KEY_ITEMS              = WIKI_URL + '/' + urlify(cfg.remap_key_items_to)
+PATH_ARROWS_AND_BOLTS       = WIKI_URL + '/' + cfg.remap_arrows_and_bolts_to
+PATH_BELL_BEARINGS          = WIKI_URL + '/' + cfg.remap_bell_bearings_to
+PATH_COOKBOOKS              = WIKI_URL + '/' + cfg.remap_cookbooks_to
+PATH_CONSUMABLES            = WIKI_URL + '/' + cfg.remap_consumables_to
+PATH_CRAFTING_MATERIALS     = WIKI_URL + '/' + cfg.remap_materials_to
+PATH_CRYSTAL_TEARS          = WIKI_URL + '/' + cfg.remap_crystal_tears_to
+PATH_GREAT_RUNES            = WIKI_URL + '/' + cfg.remap_great_runes_to
+PATH_INFO_ITEMS             = WIKI_URL + '/' + cfg.remap_info_items_to
+PATH_MULTIPLAYER_ITEMS      = WIKI_URL + '/' + cfg.remap_multiplayer_items_to
+PATH_REMEMBRANCE            = WIKI_URL + '/' + cfg.remap_remembrance_to
+PATH_TOOLS                  = WIKI_URL + '/' + cfg.remap_tools_to
+PATH_WHETBLADES             = WIKI_URL + '/' + cfg.remap_whetblades_to
+PATH_UPGRADE_MATERIALS      = WIKI_URL + '/' + cfg.remap_upgrade_materials_to
 
 ## Stretch Goals
-PATH_EFFIGIES_OF_THE_MARTYR = URL_WIKI_BASE + "/Effigies+of+the+Martyr"
-PATH_SITES_OF_GRACE         = URL_WIKI_BASE + "/Sites+of+Grace"
+PATH_EFFIGIES_OF_THE_MARTYR = WIKI_URL + '/Effigies of the Martyr'
+PATH_SITES_OF_GRACE         = WIKI_URL + '/Sites of Grace'
 
 ## Tags
 # Note: Most tags are derived
-HIDDEN_TAG = "#Hidden"
+HIDDEN_TAG = '#Hidden'
+
+## Data
+LEGACY_DUNGEONS_LIST = cfg.legacy_dungeons

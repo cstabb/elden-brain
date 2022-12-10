@@ -12,11 +12,31 @@ class Scraper:
     Collection of functions to parse HTML pages into entities.
     """
 
-    def __init__(self, logger):
+    def __init__(self, wiki_url, logger):
+        self.wiki_url = wiki_url
         self.log = logger
+        self.indexer = self.Indexer(self)
 
-    def convert_path_to_entity(self, path):
+    def convertPathToEntityName(self, path):
         return path.split('/')[-1].replace('+', ' ')
+
+    def convertEntityNameToPath(self, entity_name=''):
+        return '/' + entity_name.replace(' ', '+')
+
+    def convertMdToEntityName(self, md_filename=''):
+        return re.sub(r'', r'', md_filename)
+
+    def convertMdToPath(self, md_filename=''):
+        entity_name = self.convertMdToEntityName(md_filename)
+        return self.convertEntityNameToPath(entity_name)
+
+    def getContentBlock(self, url):
+        response = requests.get(url)
+        soup = bs(response.text, 'html.parser')
+
+        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+        return content_block
 
     def convert_paths_to_entities(self, paths=[], category=''):
         """
@@ -24,14 +44,14 @@ class Scraper:
         """
         self.log.info(f"Creating {len(paths)} {category.value} entities...")
 
-        blacklist = weapons_blacklist + items_blacklist + spells_blacklist + bosses_blacklist
+        # blacklist = weapons_blacklist + items_blacklist + spells_blacklist + bosses_blacklist
 
         entities = []
         for idx, path in enumerate(paths):
-            entity_name = self.convert_path_to_entity(path)
+            entity_name = self.convertPathToEntityName(path)
 
-            if entity_name in blacklist:
-                continue
+            # if entity_name in blacklist:
+            #     continue
 
             entity = Entity(entity_name, category=category)
 
@@ -61,7 +81,7 @@ class Scraper:
             except:
                 path = "/No+Skill"
             # print(f"PATH === {path}")
-            name = self.convert_path_to_entity(path)
+            name = self.convertPathToEntityName(path)
             description = str(cells[5])
             # print(f"NAME === {name}")
             # print(f"{description}")
@@ -81,7 +101,7 @@ class Scraper:
 
         # print(URL_WIKI_BASE + entity.path)
 
-        response = requests.get(URL_WIKI_BASE + entity.path)
+        response = requests.get(WIKI_URL + entity.path)
         soup = bs(response.text, 'html.parser')
 
         contents = {}
@@ -116,13 +136,13 @@ class Scraper:
         
         entity.content = contents_str
 
-    def scrape_entity(self, entity, force_image_download=False):
+    def scrapeEntity(self, entity, force_image_download=False):
         """
         """
         if entity.category == Category.LEGACY_DUNGEONS:
             self.scrape_legacy_dungeon(entity, force_image_download)
         
-        path = URL_WIKI_BASE + entity.path
+        path = WIKI_URL + entity.path
         response = requests.get(path)
         if response.status_code == 404:
             self.log.error(f"404 PAGE NOT FOUND - {path}")
@@ -151,7 +171,7 @@ class Scraper:
             if "discordapp" in image_src:
                 image_url = image_src
             else:
-                image_url = URL_WIKI_BASE + image_src
+                image_url = WIKI_URL + image_src
             image_data = requests.get(image_url).content
             image = Image(image_data, image_name)
 
@@ -388,124 +408,7 @@ class Scraper:
 
         return paths
 
-    def get_items_paths(self):
-        """
-        Get all Items URLS.
-
-        Several index pages beyond the wiki's Items page must be scraped 
-        to account for all items.
-        """
-
-        def get_paths_by_item_subtype(path):
-            # print(path)
-            response = requests.get(path)
-            soup = bs(response.text, 'html.parser')
-
-            if path in [PATH_UPGRADE_MATERIALS, PATH_ARROWS_AND_BOLTS]:
-                # print("HERE")
-                content_block = soup.find_all('table', attrs={'data-key': 'jumbo'})[0]
-                # print(content_block)
-            elif path == PATH_GREAT_RUNES:
-                content_block = soup.find_all('div', attrs={'class': 'tabcontent 0-tab tabcurrent'})
-            else:
-                content_block = soup.find('table')
-            # print(content_block)
-            # print(len(content_block))
-
-            paths = []
-            if path == PATH_GREAT_RUNES:
-                # content_block = soup.find_all('div', attrs={'class': 'tabcontent 0-tab tabcurrent'})
-                for row in content_block:
-                    for link in row.find_all('a'):
-                        path = link.get('href')
-                        if path is not None:
-                            paths.append(path)
-            else:
-                for row in content_block.find_all('tr'):
-                    cells = row.find('td')
-                    # print(cells)
-                    try:
-                        paths.append(cells.a.get('href'))
-                    except:
-                        pass    # Fail silently
-
-            return paths
-
-        ### Key Items
-        paths_key_items = get_paths_by_item_subtype(PATH_KEY_ITEMS)
-        
-        ### Arrows and Bolts
-        paths_arrows_and_bolts = get_paths_by_item_subtype(PATH_ARROWS_AND_BOLTS)
-
-        ### Bell Bearings
-        paths_bell_bearings = get_paths_by_item_subtype(PATH_BELL_BEARINGS)
-
-        ### Cookbooks
-        paths_cookbooks = get_paths_by_item_subtype(PATH_COOKBOOKS)
-
-        ## Consumables
-        paths_consumables = get_paths_by_item_subtype(PATH_CONSUMABLES)
-
-        ### Crafting Materials
-        paths_crafting_materials = get_paths_by_item_subtype(PATH_CRAFTING_MATERIALS)
-
-        ### Crystal Tears
-        paths_crystal_tears = get_paths_by_item_subtype(PATH_CRYSTAL_TEARS)
-
-        ### Great Runes
-        paths_great_runes = get_paths_by_item_subtype(PATH_GREAT_RUNES)
-
-        ### Info Items
-        paths_info_items = get_paths_by_item_subtype(PATH_INFO_ITEMS)
-
-        ### Multiplayer Items
-        paths_multiplayer_items = get_paths_by_item_subtype(PATH_MULTIPLAYER_ITEMS)
-
-        ### Remembrances
-        paths_remembrances = get_paths_by_item_subtype(PATH_REMEMBRANCE)
-
-        ### Tools
-        paths_tools = get_paths_by_item_subtype(PATH_TOOLS)
-
-        ### Whetblades
-        paths_whetblades = get_paths_by_item_subtype(PATH_WHETBLADES)
-
-        ### Upgrade Materials
-        paths_upgrade_materials = get_paths_by_item_subtype(PATH_UPGRADE_MATERIALS)
-
-        # print(f"KEY ITEMS\n========\n{paths_key_items}\nCOUNT: {len(paths_key_items)}\n")
-        # print(f"ARROWS ITEMS\n========\n{paths_arrows_and_bolts}\nCOUNT: {len(paths_arrows_and_bolts)}\n")
-        # print(f"BELL BEARINGS ITEMS\n========\n{paths_bell_bearings}\nCOUNT: {len(paths_bell_bearings)}\n")
-        # print(f"CONSUMABLES ITEMS\n========\n{paths_consumables}\nCOUNT: {len(paths_consumables)}\n")
-        # print(f"CRAFTING MATERIALS ITEMS\n========\n{paths_crafting_materials}\nCOUNT: {len(paths_crafting_materials)}\n")
-        # print(f"CRYSTAL TEARS ITEMS\n========\n{paths_crystal_tears}\nCOUNT: {len(paths_crystal_tears)}\n")
-        # print(f"GREAT RUNES ITEMS\n========\n{paths_great_runes}\nCOUNT: {len(paths_great_runes)}\n")
-        # print(f"MULTIPLAYER ITEMS\n========\n{paths_multiplayer_items}\nCOUNT: {len(paths_multiplayer_items)}\n")
-        # print(f"REMEMBRANCES ITEMS\n========\n{paths_remembrances}\nCOUNT: {len(paths_remembrances)}\n")
-        # print(f"TOOLS ITEMS\n========\n{paths_tools}\nCOUNT: {len(paths_tools)}\n")
-        # print(f"WHETBLADES ITEMS\n========\n{paths_whetblades}\nCOUNT: {len(paths_whetblades)}\n")
-        # print(f"UPGRADE MATERIALS ITEMS\n========\n{paths_upgrade_materials}\nCOUNT: {len(paths_upgrade_materials)}\n")
-
-        paths = paths_key_items + paths_arrows_and_bolts + paths_bell_bearings + \
-                paths_cookbooks + paths_consumables + paths_crafting_materials + \
-                paths_crystal_tears + paths_great_runes + paths_multiplayer_items + \
-                paths_remembrances + paths_tools + paths_whetblades + \
-                paths_info_items + paths_upgrade_materials
-        # paths = paths_arrows_and_bolts
-
-        paths = set(paths)    # Unique the values
-        
-        exclude = {
-            "/Interactive+map?id=4605&lat=-93.653126&lng=115.069298&zoom=8&code=mapA",
-            "/Caria+Manor", 
-            "/Lesser+Kindred+of+Rot+(Pests)", 
-            "/Merchants", 
-            "/Torches"
-        }
-
-        paths = paths - exclude
-
-        return list(paths)
+    
     
     def get_talismans_paths(self):
         """
@@ -545,79 +448,6 @@ class Scraper:
 
         return paths
 
-    def get_legacy_dungeons_paths(self):
-        #print(f"===========LEGACY DUNGEONS\n{self.legacy_dungeons}")
-        return legacy_dungeons
-
-    def get_locations_paths(self):
-        """
-        """
-        response = requests.get(PATH_LOCATIONS)
-        soup = bs(response.text, 'html.parser')
-
-        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
-
-        # Get all entities from the main Locations page
-        paths = []
-        for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'row'})):
-            for link in row.find_all('a', attrs={'class': 'wiki_link'}):
-                destination = link.get('href')
-                paths.append(destination)
-        # print(paths)
-        paths = paths[0:-6]   # Last several elements contain throwaway urls
-
-        additional_locations = [
-            "/Three+Sisters", 
-            "/Uld+Palace+Ruins", 
-        ]
-
-        paths += additional_locations
-
-        #print(Scraper.legacy_dungeons)
-        # exclude =  set(legacy_dungeons + ["/Legacy+Dungeons", "/Torrent+(Spirit+Steed)"])
-
-        exclude = [
-            "/Legacy+Dungeons", 
-            "/Torrent+(Spirit+Steed)", 
-            "/Wardead+Catacombs", 
-        ] + legacy_dungeons
-
-        paths = set(paths) - set(exclude)
-
-        return list(paths)
-    
-    def get_bosses_paths(self):
-        """
-        """
-        response = requests.get(PATH_BOSSES)
-        soup = bs(response.text, 'html.parser')
-
-        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
-
-        # Get all entities from the main Locations page
-        paths = []
-        for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'tabcontent 0-tab tabcurrent'})):
-            for ul in row.find_all('ul'):
-                for line in ul.find_all('li'):
-                    for link in line.find_all('a', attrs={'class': 'wiki_link'}):
-                        destination = link.get('href')
-                        paths.append(destination)
-        
-        exclude = {
-            "/Caelid", 
-            "/Liurnia", 
-            "/Dragonbarrow", 
-            "/Impaler's+Catacombs", 
-            "/Stormfoot+Catacombs", 
-            "/Sage's+Cave", 
-        }
-
-        paths = set(paths) - exclude   # drop Legacy Dungeons from list
-
-        paths = list(set(paths))    # Unique
-
-        return paths
-
     def get_armor_paths(self):
         """
         """
@@ -630,129 +460,6 @@ class Scraper:
         paths = []
         
         #TODO
-
-        return paths
-
-    def get_creatures_and_enemies_paths(self):
-        """
-        """
-        response = requests.get(PATH_CREATURES_AND_ENEMIES)
-        soup = bs(response.text, 'html.parser')
-
-        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
-
-        # Get all entities from the main Locations page
-        paths = []
-        # for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'row'})):
-        for col in soup.find_all('div', attrs={'class': 'col-sm-4'}):
-            for section in col.find_all(['h3', 'h4']):
-                for link in section.find_all('a', attrs={'class': 'wiki_link'}):
-                    destination = link.get('href')
-                    # print(destination)
-                    paths.append(destination)
-
-        # paths = []
-        # for row in content_block.find_all('div', attrs={'id': 'reveal'}):
-        #     for link in row.find_all('a', attrs={'class': 'wiki_link'}):
-        #         destination = link.get('href')
-        #         # destination = '/' + destination.split('/')[-1]
-        #         paths.append(destination)
-        
-        additions = [
-            "/Tanith's+Knight", 
-            "/Necromancer", 
-            "/Skeletons", 
-            "/Slug", 
-            "/First-Generation+Albinauric", 
-            "/Second-Generation+Albinauric", 
-            "/Bloody+Finger+Okina", 
-            "/Lesser+Sanguine+Noble", 
-            "/Giant+Skeleton+(Spirit)", 
-            "/Redmane+Knight", 
-            "/Large+Oracle+Envoy", 
-            "/Man-Serpent+Sorcerer", 
-            "/Silver+Sphere", 
-        ]
-
-        paths += additions
-
-        paths = set(paths)    # Unique the values
-        
-        exclude = {
-            "/NPC+Invaders", 
-            "/Scarlet+Rot+Zombie", 
-        }
-
-        paths = paths - exclude
-        
-        return list(paths)
-
-    def get_npcs_paths(self):
-        """
-        """
-        response = requests.get(PATH_NPCS)
-        soup = bs(response.text, 'html.parser')
-
-        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
-
-        paths = []
-
-        # Get entities from the NPCs page list
-        for row in content_block.find_all('div', attrs={'class': 'col-sm-4'}):
-            destination = row.a.get('href')
-            paths.append(destination)
-            print(f"NPCS LIST = {destination}")
-
-        # Get entities from the NPCs page tag cloud
-        for row in content_block.find_all('div', attrs={'id': 'reveal'}):
-            for link in row.find_all('a', attrs={'class': 'wiki_link'}):
-                destination = link.get('href')
-                destination = '/' + destination.split('/')[-1]
-                paths.append(destination)
-                print(f"NPCS TAG = {destination}")
-
-        # Get all merchants
-        response = requests.get(PATH_MERCHANTS)
-        soup = bs(response.text, 'html.parser')
-
-        for img in soup("img"):
-            img.decompose()
-
-        content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
-        for row in content_block.find_all('h4'):
-            for link in row.find_all('a', attrs={'class': 'wiki_link'}):
-                # print(f"{link}")
-                destination = link.get('href')
-                # print(f"{destination}")
-                paths.append(destination)
-        
-        additions = [
-            "/Torrent+(Spirit+Steed)", 
-            "/Volcano+Manor+Spirit", 
-            "/Eleonora,+Violet+Bloody+Finger", 
-            "/Two+Fingers", 
-        ]
-
-        paths += additions
-
-        exclude = {
-            "/Isolated+Merchants", 
-            "/Nomadic+Merchants", 
-            "/Nomadic+Merchant+Mohgwyn+Palace", 
-            "/Volcano+Manor+Spirit", 
-            "/Merchants#blacksmithing", 
-            "/Merchants#equipment", 
-            "/Merchants#generalgoods", 
-            "/Merchants#special", 
-            "/Merchants#spells",
-            "/Smithing+Master+Iji", 
-            "/Blacksmith+Hewg", 
-            "/Miriel+Pastor+of+Vows",   # "Miriel, Pastor of Vows" is included
-        }
-
-        paths = set(paths) - exclude   # drop Legacy Dungeons from list
-
-        paths = list(set(paths))    # Unique
 
         return paths
 
@@ -917,3 +624,324 @@ class Scraper:
         print('\n'.join(paths))
 
         return paths
+
+    class Indexer:
+        """
+        Read index pages to generate lists of entities.
+        """
+
+        def __init__(self, outer_class):
+            self.scraper = outer_class
+
+        def getNamesForBosses(self):
+            content_block = self.scraper.getContentBlock(PATH_BOSSES)
+
+            names = []
+
+            for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'tabcontent 0-tab tabcurrent'})):
+                for ul in row.find_all('ul'):
+                    for line in ul.find_all('li'):
+                        for link in line.find_all('a', attrs={'class': 'wiki_link'}):
+                            destination = self.scraper.convertPathToEntityName(link.get('href'))
+                            names.append(destination)
+        
+            exclusions = {
+                "Caelid", 
+                "Liurnia", 
+                "Dragonbarrow", 
+                "Impaler's Catacombs", 
+                "Stormfoot Catacombs", 
+                "Sage's Cave", 
+            }
+
+            names = list(set(names) - exclusions)
+
+            names_by_category = {}
+            names_by_category[Category.BOSSES.value] = names
+
+            return names_by_category
+        
+        def getNamesForCreaturesAndEnemies(self):
+            content_block = self.scraper.getContentBlock(PATH_CREATURES_AND_ENEMIES)
+
+            names = []
+            
+            for col in content_block.find_all('div', attrs={'class': 'col-sm-4'}):
+                for section in col.find_all(['h3', 'h4']):
+                    for link in section.find_all('a', attrs={'class': 'wiki_link'}):
+                        destination = self.scraper.convertPathToEntityName(link.get('href'))
+                        names.append(destination)
+
+            additions = [
+                "Tanith's Knight", 
+                "Necromancer", 
+                "Skeletons", 
+                "Slug", 
+                "First-Generation Albinauric", 
+                "Second-Generation Albinauric", 
+                "Bloody Finger Okina", 
+                "Lesser Sanguine Noble", 
+                "Giant Skeleton (Spirit)", 
+                "Redmane Knight", 
+                "Large Oracle Envoy", 
+                "Man-Serpent Sorcerer", 
+                "Silver Sphere", 
+            ]
+
+            names += additions
+
+            exclusions = {
+                "NPC Invaders", 
+                "Scarlet Rot Zombie", 
+            }
+
+            names = list(set(names) - exclusions)
+            
+            names_by_category = {}
+            names_by_category[Category.ENEMIES.value] = names
+
+            return names_by_category
+
+        def getNamesForItems(self):
+            """
+            Get all Items names.
+
+            Several subcategory index pages beyond the wiki's Items page must be scraped 
+            to account for all items.
+            """
+
+            def getNamesByItemSubCategory(subcategory):
+                path = item_subcategory_paths[subcategory]
+                response = requests.get(path)
+                soup = bs(response.text, 'html.parser')
+
+                if subcategory in [ItemSubcategory.UPGRADE_MATERIALS, ItemSubcategory.ARROWS_AND_BOLTS]:
+                    content_block = soup.find_all('table', attrs={'data-key': 'jumbo'})[0]
+                elif subcategory == ItemSubcategory.GREAT_RUNES:
+                    content_block = soup.find_all('div', attrs={'class': 'tabcontent 0-tab tabcurrent'})
+                else:
+                    content_block = soup.find('table')
+
+                names = []
+
+                if subcategory == ItemSubcategory.GREAT_RUNES:
+                    for row in content_block:
+                        for link in row.find_all('a'):
+                            name = link.get('href')
+                            if name is not None:
+                                names.append(self.scraper.convertPathToEntityName(name))
+                else:
+                    for row in content_block.find_all('tr'):
+                        cells = row.find('td')
+                        try:
+                            name = cells.a.get('href')
+                            names.append(self.scraper.convertPathToEntityName(name))
+                        except:
+                            pass    # Fail silently
+
+                return names
+
+            names_by_category = {}
+
+            names_by_category[Category.ITEMS.value] = {}
+
+            names_items = names_by_category[Category.ITEMS.value]
+            names_items[ItemSubcategory.KEY_ITEMS.value] = []
+            names_items[ItemSubcategory.KEY_ITEMS.value] += getNamesByItemSubCategory(ItemSubcategory.KEY_ITEMS)
+            names_items[ItemSubcategory.ARROWS_AND_BOLTS.value] = []
+            names_items[ItemSubcategory.ARROWS_AND_BOLTS.value] = getNamesByItemSubCategory(ItemSubcategory.ARROWS_AND_BOLTS)
+            names_items[ItemSubcategory.BELL_BEARINGS.value] = []
+            names_items[ItemSubcategory.BELL_BEARINGS.value] = getNamesByItemSubCategory(ItemSubcategory.BELL_BEARINGS)
+            names_items[ItemSubcategory.COOKBOOKS.value] = []
+            names_items[ItemSubcategory.COOKBOOKS.value] = getNamesByItemSubCategory(ItemSubcategory.COOKBOOKS)
+            names_items[ItemSubcategory.CONSUMABLES.value] = []
+            names_items[ItemSubcategory.CONSUMABLES.value] = getNamesByItemSubCategory(ItemSubcategory.CONSUMABLES)
+            names_items[ItemSubcategory.CRAFTING_MATERIALS.value] = []
+            names_items[ItemSubcategory.CRAFTING_MATERIALS.value] = getNamesByItemSubCategory(ItemSubcategory.CRAFTING_MATERIALS)
+            names_items[ItemSubcategory.CRYSTAL_TEARS.value] = []
+            names_items[ItemSubcategory.CRYSTAL_TEARS.value] = getNamesByItemSubCategory(ItemSubcategory.CRYSTAL_TEARS)
+            names_items[ItemSubcategory.GREAT_RUNES.value] = []
+            names_items[ItemSubcategory.GREAT_RUNES.value] = getNamesByItemSubCategory(ItemSubcategory.GREAT_RUNES)
+            names_items[ItemSubcategory.INFO_ITEMS.value] = []
+            names_items[ItemSubcategory.INFO_ITEMS.value] = getNamesByItemSubCategory(ItemSubcategory.INFO_ITEMS)
+            names_items[ItemSubcategory.MULTIPLAYER_ITEMS.value] = []
+            names_items[ItemSubcategory.MULTIPLAYER_ITEMS.value] = getNamesByItemSubCategory(ItemSubcategory.MULTIPLAYER_ITEMS)
+            names_items[ItemSubcategory.REMEMBRANCE.value] = []
+            names_items[ItemSubcategory.REMEMBRANCE.value] = getNamesByItemSubCategory(ItemSubcategory.REMEMBRANCE)
+            names_items[ItemSubcategory.TOOLS.value] = []
+            names_items[ItemSubcategory.TOOLS.value] = getNamesByItemSubCategory(ItemSubcategory.TOOLS)
+            names_items[ItemSubcategory.WHETBLADES.value] = []
+            names_items[ItemSubcategory.WHETBLADES.value] = getNamesByItemSubCategory(ItemSubcategory.WHETBLADES)
+            names_items[ItemSubcategory.UPGRADE_MATERIALS.value] = []
+            names_items[ItemSubcategory.UPGRADE_MATERIALS.value] = getNamesByItemSubCategory(ItemSubcategory.UPGRADE_MATERIALS)
+
+            exclusions = {
+                "/Interactive+map?id=4605&lat=-93.653126&lng=115.069298&zoom=8&code=mapA",
+                "Caria Manor", 
+                "Lesser Kindred of Rot (Pests)", 
+                "Merchants", 
+                "Torches"
+            }
+
+            for key, val in names_by_category.items():
+                if key == Category.ITEMS.value:
+                    continue
+                val = list(set(val) - exclusions)
+
+            return names_by_category
+
+        def getNamesForLegacyDungeons(self):
+            names_by_category = {}
+            names_by_category[Category.LEGACY_DUNGEONS.value] = LEGACY_DUNGEONS_LIST
+            return names_by_category
+
+        def getNamesForLocations(self):
+            """
+            """
+            content_block = self.scraper.getContentBlock(PATH_LOCATIONS)
+
+            names = []
+
+            for idx, row in enumerate(content_block.find_all('div', attrs={'class': 'row'})):
+                for link in row.find_all('a', attrs={'class': 'wiki_link'}):
+                    destination = self.scraper.convertPathToEntityName(link.get('href'))
+                    names.append(self.scraper.convertPathToEntityName(destination))
+            
+            names = names[0:-6]   # Last several elements contain throwaway urls
+
+            additions = [
+                "Three Sisters", 
+                "Uld Palace Ruins", 
+            ]
+
+            names += additions
+
+            exclusions = set([
+                "Torrent (Spirit+Steed)", 
+                "Wardead Catacombs", 
+            ] + LEGACY_DUNGEONS_LIST)
+
+            names = list(set(names) - exclusions)
+
+            names_by_category = {}
+            names_by_category[Category.LOCATIONS.value] = names
+
+            return names_by_category
+
+        def getNamesForNpcs(self):
+            """
+            """
+            response = requests.get(PATH_NPCS)
+            soup = bs(response.text, 'html.parser')
+
+            content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+
+            names = []
+
+            # Get entities from the NPCs page list
+            for row in content_block.find_all('div', attrs={'class': 'col-sm-4'}):
+                destination = self.scraper.convertPathToEntityName(row.a.get('href'))
+                names.append(destination)
+                print(f"NPCS LIST = {destination}")
+
+            # Get entities from the NPCs page tag cloud
+            for row in content_block.find_all('div', attrs={'id': 'reveal'}):
+                for link in row.find_all('a', attrs={'class': 'wiki_link'}):
+                    destination = link.get('href')
+                    destination = self.scraper.convertPathToEntityName(destination.split('/')[-1])
+                    names.append(destination)
+                    print(f"NPCS TAG = {destination}")
+
+            # Get all merchants
+            response = requests.get(PATH_MERCHANTS)
+            soup = bs(response.text, 'html.parser')
+
+            for img in soup("img"):
+                img.decompose()
+
+            content_block = soup.find('div', attrs={'id': 'wiki-content-block'})
+            for row in content_block.find_all('h4'):
+                for link in row.find_all('a', attrs={'class': 'wiki_link'}):
+                    # print(f"{link}")
+                    destination = self.scraper.convertPathToEntityName(link.get('href'))
+                    names.append(destination)
+                    print(f"NPCS MERCHANTS = {destination}")
+            
+            additions = [
+                "Torrent (Spirit Steed)", 
+                "Volcano Manor Spirit", 
+                "Eleonora, Violet Bloody Finger", 
+                "Two Fingers", 
+            ]
+
+            names += additions
+
+            exclusions = {
+                "Isolated Merchants", 
+                "Nomadic Merchants", 
+                "Nomadic Merchant Mohgwyn Palace", 
+                "Volcano Manor Spirit", 
+                "Merchants#blacksmithing", 
+                "Merchants#equipment", 
+                "Merchants#generalgoods", 
+                "Merchants#special", 
+                "Merchants#spells",
+                "Smithing Master Iji", 
+                "Blacksmith Hewg", 
+                "Miriel Pastor of Vows",   # This one's redundant as 'Miriel, Pastor of Vows' is included in the scrape
+            }
+
+            names = list(set(names) - exclusions)
+
+            names_by_category = {}
+            names_by_category[Category.NPCS.value] = names
+
+            return names_by_category
+
+        def getNamesByCategory(self, category):
+
+            names_by_category = {}
+
+            def getNamesFunction(category):
+                name_function = None
+
+                if category == Category.BOSSES.value:
+                    name_function = self.getNamesForBosses
+                elif category == Category.ENEMIES.value:
+                    name_function = self.getNamesForCreaturesAndEnemies
+                elif category == Category.ITEMS.value:
+                    name_function = self.getNamesForItems
+                elif category == Category.LEGACY_DUNGEONS.value:
+                    name_function  = self.getNamesForLegacyDungeons
+                elif category == Category.LOCATIONS.value:
+                    name_function = self.getNamesForLocations
+                elif category == Category.NPCS.value:
+                    name_function = self.getNamesForNpcs
+                # elif category == Category.SHIELDS.value:
+                #     names = self.get_shields_names()
+                # elif category == Category.SKILLS.value:
+                #     names = self.get_skills_names()
+                # elif category == Category.SPELLS.value:
+                #     names = self.get_spells_names()
+                # elif category == Category.TALISMANS.value:
+                #     names = self.get_talismans_names()
+                # elif category == Category.WEAPONS.value:
+                #     names = self.get_weapons_names()
+                # elif category == Category.ARMOR.value:
+                #     names = self.get_armor_sets_names()
+                # elif category == Category.SPIRIT_ASH.value:
+                #     names = self.get_spirit_ashes_names()
+
+                return name_function
+
+            names_by_category = getNamesFunction(category)()
+            
+            return names_by_category
+
+    def getNamesByCategory(self, category):
+        """
+        Returns a dictionary? of (potentially nested) categories and lists of names
+        """
+        return self.indexer.getNamesByCategory(category)
+
+        

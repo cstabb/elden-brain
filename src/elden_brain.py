@@ -7,15 +7,49 @@ from constants import *
 from objects import *
 from scraper import Scraper
 
-class EldenBring:
+class EldenBrain:
     """
+    Render the prima materia
     """
 
     def __init__(self, logging_enabled=True):
 
-        self.prima_materia = dict()
+        self.prima_materia = {}
 
-        # Create directories if they don't already exist
+        ## Set up logger
+        if logging_enabled:
+            logging.basicConfig(level=os.environ.get('LOGLEVEL', 'INFO'))
+            self.log = logging.getLogger('elden-bring-logger')
+        else:
+            self.log = logging.getLogger('null_logger').addHandler(logging.NullHandler())
+        
+        self.scraper = Scraper(WIKI_URL, self.log)
+
+        ## Resurrect the brain from existing directories, if they exist
+        if os.path.exists(LOCAL_CACHE + LOCAL_VAULT_NAME):
+
+            # Get existing filenames by category (directory)
+            filenames_by_category = {}
+            for root, dirs, files in os.walk(LOCAL_CACHE + LOCAL_VAULT_NAME):
+                category = root.split('/')[-1]
+                assets_location = LOCAL_ASSETS if cfg.remap_assets else LOCAL_ASSETS[0:-1]
+                if category in ['', '.obsidian', assets_location]:
+                    continue
+                else:
+                    for filename in files:
+                        if category not in filenames_by_category:
+                            filenames_by_category[category] = []
+                        filenames_by_category[category].append(filename)
+            
+            # Populate the Prima Materia
+            for category, filename in filenames_by_category.items():
+                entity = Entity.from_md(filename)
+
+                if category not in self.prima_materia:
+                    self.prima_materia[category] = []
+                self.prima_materia[category].append(entity)
+
+        ## Create directories if they don't already exist
         if not os.path.exists(LOCAL_CACHE):
             os.mkdir(LOCAL_CACHE)
         if not os.path.exists(LOCAL_CACHE + LOCAL_VAULT_NAME):
@@ -25,17 +59,63 @@ class EldenBring:
         if not os.path.exists(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_HIDDEN):
             os.mkdir(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_HIDDEN)
 
-        # Set up logger
-        if logging_enabled:
-            logging.basicConfig(level=os.environ.get('LOGLEVEL', 'INFO'))
-            self.log = logging.getLogger('elden-bring-logger')
-        else:
-            self.log = logging.getLogger('null_logger').addHandler(logging.NullHandler())
-
-        self.scraper = Scraper(self.log)
-
     def __getitem__(self, category):
          return self.prima_materia[category]
+
+    def create(self, name=None, force_overwrite=False):
+        """
+        Create the Elden Brain. Scrapes the wiki and generates Markdown documents.
+
+        A single entity's name can be passed in if a specific one is desired.
+        Otherwise, this will scrape all pages.
+        """
+
+        if name is None or name == '':
+            # Make all
+            categories = self.getCategories()
+
+            for category in categories:
+                self.createByCategory(category)
+
+            return
+        else:
+            self._prepareEntity()
+            
+            # scrape
+            self.scraper.scrapeEntity()
+
+            # make
+
+            return
+
+    def createByCategory(self, category, force_overwrite=False):
+        """
+        Create all entities that fall within a known category.
+        """
+
+        # Get all names within a category
+        self.scraper.getNamesByCategory()
+
+        return
+
+    def getCategories(self):
+        """
+        Get all known categories as a list.
+        """
+
+        categories = []
+        for category in Category:
+            categories.append(category.value)
+        categories.remove(Category.NONE.value)
+
+        return categories
+
+    def getNamesByCategories(self, category):
+        return self.scraper.getNamesByCategory(category)
+
+    def add(self, entity):
+        if not isinstance(entity, Entity):
+            raise TypeError(f'entity {entity} is not an Entity')
 
     def update_entity_names(self, category=''):
         target = category.value + ".txt"
@@ -77,7 +157,7 @@ class EldenBring:
                 f.close()
                 time.sleep(0.001)   # Necessary to allow Obsidian time to recognize the new file
 
-    def _prepare_entity(self, name, category=''):
+    def _prepareEntity(self, name, category=''):
         """
         If the exact name of an entity is known, it may be used and the path derived.
 
@@ -91,7 +171,7 @@ class EldenBring:
         
         entity = Entity(name, category=category)
 
-        # print(entity.name)
+        self.add(entity)
 
         if category == '':
             if 'Unknown' not in self.prima_materia:
@@ -103,21 +183,23 @@ class EldenBring:
                 self.prima_materia[category] = [entity]
             else:
                 self.prima_materia[category].append(entity)
+        
+        return 
 
-    def _prepare_entities(self, category=''):
+    def _prepareEntities(self, category=''):
         """
         Create the entity objects for a given category.
         """
         paths = self.scraper.get_paths(category)
-        # print(paths)
+        
         entities = self.scraper.convert_paths_to_entities(paths, category) # Only URLs and names at this point
-        # print(entities)
+        
         self.prima_materia[category] = entities
 
     def scrape_entity(self, name, category='', write=False):
         """
         """
-        self._prepare_entity(name, category)
+        self._prepareEntity(name, category)
         # print(len(self.prima_materia[category]))
         # print(self.prima_materia[category][0].name)
 
@@ -126,7 +208,7 @@ class EldenBring:
             for known_category, entities in self.prima_materia.items():
                 for entity in entities:
                     if entity.name == name:
-                        self.scraper.scrape_entity(entity)
+                        self.scraper.scrapeEntity(entity)
                         if write:
                             entity.write()
         elif category == Category.SKILLS:
@@ -143,7 +225,7 @@ class EldenBring:
                     if category == Category.LEGACY_DUNGEONS:
                         self.scraper.scrape_legacy_dungeon_entity(entity)
                     else:
-                        self.scraper.scrape_entity(entity)
+                        self.scraper.scrapeEntity(entity)
                     # print(entity)
                     if write:
                         entity.write()
@@ -151,7 +233,7 @@ class EldenBring:
     def scrape_entities(self, category='', write=False):
         """
         """
-        self._prepare_entities(category)
+        self._prepareEntities(category)
 
         # print(self.prima_materia[category])
 
@@ -162,7 +244,7 @@ class EldenBring:
                 self.log.info(f"Scraping {known_category}...")
                 for i, entity in enumerate(entities):
                     self.log.info(f"Scraping {entity.name} [{i+1} of {len(self.prima_materia[known_category])}]...")
-                    self.scraper.scrape_entity(entity)
+                    self.scraper.scrapeEntity(entity)
                     if write:
                         entity.write()
         elif category == Category.SKILLS:
@@ -186,7 +268,7 @@ class EldenBring:
                     # print(f"CONTENTS===\n{entity.contents}")
                     # print(entity)
                 else:
-                    self.scraper.scrape_entity(entity)
+                    self.scraper.scrapeEntity(entity)
                 if write:
                     entity.write()
 

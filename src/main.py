@@ -1,11 +1,23 @@
-from elden_bring import *
+from elden_brain import *
 from scraper import Scraper
 
 from objects import *
 
 def main():
 
-    eb = EldenBring()
+    eb = EldenBrain() # Optionally provide cached Vault location, otherwise used config
+
+    # eb.status()
+
+    # eb.create()
+    # eb.create('Entity Name')
+    # eb.createByCategory('Talismans')
+    # print(eb.getCategories())
+    # print(eb.getNamesByCategories('Bosses'))
+    # print(eb.getNamesByCategories('Creatures and Enemies'))
+    # print(eb.getNamesByCategories('Items'))
+    # print(eb.getNamesByCategories('Locations'))
+    print(eb.getNamesByCategories('NPCs'))
 
     # Refactor 2.0 workflow
     # eb.list_categories()
