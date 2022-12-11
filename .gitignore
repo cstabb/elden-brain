@@ -2,6 +2,7 @@
 /assets
 /cache/*
 /cache_full/*
+/cache_temp/*
 /.vscode
 /env
 /tests
