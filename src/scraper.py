@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup as bs
 from constants import *
 from objects import *
 
+
 class Scraper:
     """
     Collection of functions to parse HTML pages into entities.
@@ -28,6 +29,12 @@ class Scraper:
     def convertMdToPath(self, md_filename=''):
         entity_name = self.convertMdToEntityName(md_filename)
         return self.convertEntityNameToPath(entity_name)
+
+    def getNamesByCategory(self, category):
+        """
+        Returns a dictionary of (potentially nested) categories and lists of names
+        """
+        return self.indexer.getNamesByCategory(category)
 
     def getContentBlock(self, url):
         response = requests.get(url)
@@ -788,11 +795,3 @@ class Scraper:
             names_by_category = name_function_by_category[category]()
             
             return names_by_category
-
-    def getNamesByCategory(self, category):
-        """
-        Returns a dictionary of (potentially nested) categories and lists of names
-        """
-        return self.indexer.getNamesByCategory(category)
-
-        

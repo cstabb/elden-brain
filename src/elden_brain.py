@@ -10,6 +10,7 @@ from objects import *
 from scraper import Scraper
 from text_handling import Formatter
 
+
 class EldenBrain:
     """
     Render the prima materia.
@@ -30,7 +31,6 @@ class EldenBrain:
 
         ## Resurrect the brain from existing directories, if they exist
         if os.path.exists(LOCAL_CACHE + LOCAL_VAULT_NAME):
-
             # Get existing filenames by category (directory)
             filenames_by_category = {}
             for root, dirs, files in os.walk(LOCAL_CACHE + LOCAL_VAULT_NAME):
@@ -43,10 +43,9 @@ class EldenBrain:
                         if category not in filenames_by_category:
                             filenames_by_category[category] = []
                         filenames_by_category[category].append(filename)
-            
             # Populate the Prima Materia
             for category, filename in filenames_by_category.items():
-                entity = Entity.from_md(filename)
+                entity = Entity.fromMd(filename)
 
                 if category not in self.prima_materia:
                     self.prima_materia[category] = []
@@ -174,7 +173,7 @@ class EldenBrain:
             self.log.info(f"Writing {skill.name} [{counter} of {num_skills}]...")
             counter += 1
             skill.write()
-            time.sleep(0.001)   # Necessary to allow Obsidian a moment to recognize the new file
+            time.sleep(0.001)   # Allow Obsidian a moment to recognize the new file
         
     def _createHidden(self, overwrite=True):
         """
@@ -184,7 +183,7 @@ class EldenBrain:
         are not useful, or otherwise should be ignored. Pages with the #Hidden tag 
         can be suppressed in Obsidian's graph view and avoid showing up as dead-end gray nodes.
         """
-        
+
         path = LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_HIDDEN
 
         self.log.info(f"Creating {len(all_targets)} hidden files...")
@@ -198,6 +197,7 @@ class EldenBrain:
                 f.close()
 
                 time.sleep(0.001)   # Necessary to allow Obsidian time to recognize the new file
+
 
 class Entity:
     def __init__(self, name, category=Category.NONE, image=None):
@@ -218,15 +218,13 @@ class Entity:
 
         # Hide 'About' items
         if re.search(r'^About ', self.name):
-            self.add_tag('Hidden')
+            self.addTag('Hidden')
         
         self.content = ''
         
     def __str__(self):
         name_f_string = f'\n{self.name}\n========\n\n'
-
         content_f_string = f'{self.content}'
-
         return name_f_string + content_f_string
     
     def __setattr__(self, name, value):
@@ -237,12 +235,13 @@ class Entity:
 
             text = value
 
-            # Pre-Markdownify modifications
+            ## Pre-Markdownify modifications
             # text = Formatter.prep_varre_e(text)
 
-            # Markdownify
+            ## Markdownify
             markdown = md(text)
 
+            ## Fixes, and they ain't pretty
             markdown = Formatter.remove_hemorrhage_links(markdown)
             markdown = Formatter.remove_video_links(markdown)
             markdown = Formatter.reformat_map_links(markdown)
@@ -260,7 +259,6 @@ class Entity:
             # Misc
             markdown = Formatter.unlink_builds(markdown)
             markdown = Formatter.unlink_special_weaknesses(markdown)
-            # markdown = Formatter.unlink_sites_of_grace(markdown)
             markdown = Formatter.correct_crucible_aspect_spell_names(markdown)
             markdown = Formatter.redirect_ashofwar_skill_links(markdown)
 
@@ -319,7 +317,7 @@ class Entity:
 
             markdown = Formatter.unify_skills(markdown)
 
-            # Convert custom text markers to Markdown
+            # Convert custom text markers (%%) to Markdown
             markdown = Formatter.reformat_notes(markdown)
             markdown = Formatter.reify_bullets(markdown)
             # markdown = Formatter.reify_varre_e(markdown)
@@ -352,19 +350,16 @@ class Entity:
         else:
             self.__dict__[name] = value
 
-    def from_md(filename):
+    def fromMd(filename):
         #TODO
         return
 
-    def add_tag(self, tag):
+    def addTag(self, tag):
         tag = re.sub(r' +', r'', tag)
         if tag not in self.tags:
             self.tags.append(tag)
 
-    # def derive_path(self):
-    #     self.path = '/' + self.name.replace(' ', '+')
-
-    def set_location(self, location_in_html):
+    def setLocation(self, location_in_html):
         self.location = md(location_in_html.strip().replace(u'\xa0', ' '))
 
     def write(self, additional_tags=[], filename=None):
@@ -375,13 +370,13 @@ class Entity:
         path = LOCAL_CACHE + LOCAL_VAULT_NAME
         if self.category is not None:
             path += self.category.value + '/'
+
         # Create destination directory if it doesn't exist
         if not os.path.exists(path):
             os.mkdir(path)
         
-        f = open(path + filename+'.md', 'w')
-        
         tags_md_string = ''
+
         # Front matter formatting--works, but ugly!
         # if additional_tags == []:
         #     additional_tags = ''
@@ -391,23 +386,23 @@ class Entity:
         # if self.category is not None:
         #     category_string = re.sub(r' +', r'', self.category.value)
         #     self.tags.insert(0, category_string)
-        #     # print(tags)
+
         tags = ['#'+tag for tag in self.tags]
-        # print(tags)
+
         tags_md_string = ' '.join(tags) + f'\n\n'
 
-        image = ''
         if self.image is not None:
             image = '![['+self.image.name+']]\n\n'
 
-        content_md_string = ''
         if self.content != '':
             content_md_string = f'{self.content}'
 
         output_str = tags_md_string + image + content_md_string
-        # print(output_str)
+        
+        f = open(path + filename+'.md', 'w')
         f.write(output_str)
         f.close()
+        
 
 class Image:
     def __init__(self, data, name=''):
