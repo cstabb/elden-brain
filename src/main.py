@@ -17,7 +17,14 @@ def main():
     # print(eb.getNamesByCategories('Creatures and Enemies'))
     # print(eb.getNamesByCategories('Items'))
     # print(eb.getNamesByCategories('Locations'))
-    print(eb.getNamesByCategories('NPCs'))
+    # print(eb.getNamesByCategories('NPCs'))
+    # print(eb.getNamesByCategories('Shields'))
+    # print(eb.getNamesByCategories('Skills'))
+    # print(eb.getNamesByCategories('Spells'))
+    # print(eb.getNamesByCategories('Talismans'))
+    # print(eb.getNamesByCategories('Weapons'))
+    # print(eb.getNamesByCategories('Spirit Ashes'))
+    # print(eb.getNamesByCategories('Armor'))
 
     # Refactor 2.0 workflow
     # eb.list_categories()

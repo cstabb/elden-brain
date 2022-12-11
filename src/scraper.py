@@ -2,7 +2,6 @@ import os
 
 import requests
 from bs4 import BeautifulSoup as bs
-from bs4 import NavigableString, Tag
 
 from constants import *
 from objects import *

@@ -15,17 +15,17 @@ LOCAL_ASSETS = (cfg.remap_assets_to if cfg.remap_assets else 'Assets') + '/'    
 LOCAL_HIDDEN = (cfg.remap_hidden_to if cfg.remap_hidden else 'Hidden') + '/'
 
 ### Paths (relative to the wiki url)
-## Mid-Level paths
+## Category paths
 PATH_WEAPONS                = WIKI_URL + '/' + cfg.remap_weapons_to
 PATH_SPIRIT_ASHES           = WIKI_URL + '/' + cfg.remap_spirit_ashes_to
 PATH_SKILLS                 = WIKI_URL + '/' + cfg.remap_skills_to
 PATH_SPELLS                 = WIKI_URL + '/' + cfg.remap_spells_to
 PATH_SHIELDS                = WIKI_URL + '/' + cfg.remap_shields_to
 PATH_ARMOR                  = WIKI_URL + '/' + cfg.remap_armor_to
-# PATH_ARMOR_HELMS            = WIKI_URL + '/' + cfg.remap_helms_to
-# PATH_ARMOR_CHESTS           = WIKI_URL + '/' + cfg.remap_chest_armor_to
-# PATH_ARMOR_GAUNTLETS        = WIKI_URL + '/' + cfg.remap_gauntlets_to
-# PATH_ARMOR_LEGS             = WIKI_URL + '/' + cfg.remap_leg_armor_to
+PATH_ARMOR_HELMS            = WIKI_URL + '/' + cfg.remap_helms_to
+PATH_ARMOR_CHESTS           = WIKI_URL + '/' + cfg.remap_chest_armor_to
+PATH_ARMOR_GAUNTLETS        = WIKI_URL + '/' + cfg.remap_gauntlets_to
+PATH_ARMOR_LEGS             = WIKI_URL + '/' + cfg.remap_leg_armor_to
 PATH_TALISMANS              = WIKI_URL + '/' + cfg.remap_talismans_to
 PATH_CREATURES_AND_ENEMIES  = WIKI_URL + '/' + cfg.remap_creatures_and_enemies_to
 PATH_BOSSES                 = WIKI_URL + '/' + cfg.remap_bosses_to
@@ -36,7 +36,7 @@ PATH_MERCHANTS              = WIKI_URL + '/' + cfg.remap_merchants_to
 PATH_LORE                   = WIKI_URL + '/' + cfg.remap_lore_to   # Used for scraping transcripts
 PATH_ITEMS                  = WIKI_URL + '/' + cfg.remap_items_to  # Not used--item index pages are listed below
 
-## Item sub-categories
+## Item sub-category paths
 PATH_KEY_ITEMS              = WIKI_URL + '/' + urlify(cfg.remap_key_items_to)
 PATH_ARROWS_AND_BOLTS       = WIKI_URL + '/' + cfg.remap_arrows_and_bolts_to
 PATH_BELL_BEARINGS          = WIKI_URL + '/' + cfg.remap_bell_bearings_to
@@ -62,3 +62,4 @@ HIDDEN_TAG = '#Hidden'
 
 ## Data
 LEGACY_DUNGEONS_LIST = cfg.legacy_dungeons
+HIDDEN_LIST = cfg.all_hidden

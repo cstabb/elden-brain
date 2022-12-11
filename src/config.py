@@ -5,6 +5,7 @@ class ConfigReader:
     def __init__(self):
         ## Set up config
         self.config = configparser.ConfigParser(allow_no_value=True)
+        self.config.optionxform = str
         self.config.read('config.ini')
 
         # Assign options from config
@@ -49,6 +50,15 @@ class ConfigReader:
         self.remap_armor_to = self.config['Remapping']['remap_armor_to']
         self.remap_spirit_ashes = self.config['Remapping']['remap_spirit_ashes']
         self.remap_spirit_ashes_to = self.config['Remapping']['remap_spirit_ashes_to']
+        # Armor sub-categories
+        self.remap_chest_armor = self.config['Remapping']['remap_chest_armor']
+        self.remap_chest_armor_to = self.config['Remapping']['remap_chest_armor_to']
+        self.remap_gauntlets = self.config['Remapping']['remap_gauntlets']
+        self.remap_gauntlets_to = self.config['Remapping']['remap_gauntlets_to']
+        self.remap_helms = self.config['Remapping']['remap_helms']
+        self.remap_helms_to = self.config['Remapping']['remap_helms_to']
+        self.remap_leg_armor = self.config['Remapping']['remap_leg_armor']
+        self.remap_leg_armor_to = self.config['Remapping']['remap_leg_armor_to']
         # Item sub-categories
         self.remap_key_items_to = self.config['Remapping']['remap_key_items_to']
         self.remap_arrows_and_bolts_to = self.config['Remapping']['remap_arrows_and_bolts_to']
@@ -65,11 +75,11 @@ class ConfigReader:
         self.remap_whetblades_to = self.config['Remapping']['remap_whetblades_to']
         self.remap_upgrade_materials_to = self.config['Remapping']['remap_upgrade_materials_to']
 
-        self.all_hidden = self.config['Hidden']
-
         # Data
         self.legacy_dungeons = self.parseList(self.config['Data']['legacy_dungeons'])
-        #print(self.legacy_dungeons)
+
+        # Hidden
+        self.hidden = self.config['Hidden']
         
     def parseList(self, text):
         return text.split('\n')[1:]
