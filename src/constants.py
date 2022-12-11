@@ -62,4 +62,4 @@ HIDDEN_TAG = '#Hidden'
 
 ## Data
 LEGACY_DUNGEONS_LIST = cfg.legacy_dungeons
-HIDDEN_LIST = cfg.all_hidden
+HIDDEN_LIST = cfg.hidden

@@ -7,6 +7,8 @@ def main():
 
     eb = EldenBrain() # Optionally provide cached Vault location, otherwise used config
 
+    eb.create('Dagger')
+
     # eb.status()
 
     # eb.create()

@@ -20,16 +20,17 @@ class EldenBrain:
 
         self.prima_materia = {}
 
-        ## Set up logger
+        ## Set up the logger
         if logging_enabled:
             logging.basicConfig(level=os.environ.get('LOGLEVEL', 'INFO'))
             self.log = logging.getLogger('elden-bring-logger')
         else:
             self.log = logging.getLogger('null_logger').addHandler(logging.NullHandler())
         
+        ## Set up the scraper
         self.scraper = Scraper(WIKI_URL, self.log)
 
-        ## Resurrect the brain from existing directories, if they exist
+        ## Resurrect the prima materia from existing directories, if they exist
         if os.path.exists(LOCAL_CACHE + LOCAL_VAULT_NAME):
             # Get existing filenames by category (directory)
             filenames_by_category = {}
@@ -43,10 +44,9 @@ class EldenBrain:
                         if category not in filenames_by_category:
                             filenames_by_category[category] = []
                         filenames_by_category[category].append(filename)
-            # Populate the Prima Materia
+            # Populate the prima materia
             for category, filename in filenames_by_category.items():
                 entity = Entity.fromMd(filename)
-
                 if category not in self.prima_materia:
                     self.prima_materia[category] = []
                 self.prima_materia[category].append(entity)

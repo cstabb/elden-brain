@@ -305,6 +305,7 @@ class Scraper:
         entity.image = image
         entity.content = contents_string
 
+
     class Indexer:
         """
         Read index pages to generate lists of entities.
