@@ -5,16 +5,177 @@ class Formatter:
     Formats and cleans text, including targeted corrections.
     '''
 
-    ## Pre-Markdown modification functions
-    def prep_varre_e(text):
-        return re.sub(r'é', r'%E-LOWERCASE-ACCENTED%', text)
+    def applyCharacterFixes(markdown):
+        markdown = Formatter.replace_special_characters(markdown)
+
+        return markdown
+
+    def applyTextFixes(markdown):
+        """
+        Apply all of the little text fixes for inconsistencies, misspellings, standardizing, 
+        or just plain beautification.
+
+        Order matters here, unfortunately, so those changes with the most far-ranging
+        impact (such as initial link cleanup and standardization) come first.
+        """
+        ## Essential cleanup
+        markdown = Formatter.prep_map_links(markdown)
+        markdown = Formatter.reformat_links(markdown)
+        markdown = Formatter.remove_more_info_links(markdown)
+        markdown = Formatter.remove_map_links(markdown)
+        markdown = Formatter.map_link_cleanup(markdown)
+        markdown = Formatter.remove_video_links(markdown)
+        markdown = Formatter.remove_image_links(markdown)
+        markdown = Formatter.remove_elden_ring_links(markdown)
+        markdown = Formatter.fix_brackets_in_item_names(markdown)
+        markdown = Formatter.remove_other_notes_bullet(markdown)
+        markdown = Formatter.fix_accented_e(markdown)
+        markdown = Formatter.reformat_notes(markdown)
+
+        ## Unify inconsistent links/names
+        markdown = Formatter.unify_d(markdown)
+        markdown = Formatter.unify_enia(markdown)
+        markdown = Formatter.unify_ensha(markdown)
+        markdown = Formatter.unify_ranni(markdown)
+        markdown = Formatter.unify_gideon_boss(markdown)
+        markdown = Formatter.unify_hewg(markdown)
+        markdown = Formatter.unify_hoslow(markdown)
+        markdown = Formatter.unify_iji(markdown)
+        markdown = Formatter.unify_godfrey(markdown)
+        markdown = Formatter.unify_gurranq(markdown)
+        markdown = Formatter.unify_malenia(markdown)
+        markdown = Formatter.unify_miriel(markdown)
+        markdown = Formatter.unify_morgott(markdown)
+        markdown = Formatter.unify_seluvis(markdown)
+        markdown = Formatter.unify_varre(markdown)
+        markdown = Formatter.unify_renalla(markdown)
+        markdown = Formatter.unify_torrent(markdown)
+        markdown = Formatter.unify_bernahl(markdown)
+        markdown = Formatter.unify_nomadic_merchant_west_liurnia(markdown)
+        markdown = Formatter.unify_hermit_merchant_mountaintops_east(markdown)
+        markdown = Formatter.unify_alexander(markdown)
+        markdown = Formatter.unify_boc(markdown)
+        markdown = Formatter.unify_imp(markdown)
+        # Enemies
+        markdown = Formatter.unify_astel(markdown)
+        markdown = Formatter.unify_putrid_corpse(markdown)
+        markdown = Formatter.unify_moongrum(markdown)
+        markdown = Formatter.unify_rat(markdown)
+        markdown = Formatter.unify_monstrous_crow(markdown)
+        markdown = Formatter.unify_monstrous_dog(markdown)
+        markdown = Formatter.unify_wolf(markdown)
+        markdown = Formatter.unify_kindred(markdown)
+        markdown = Formatter.unify_miranda_sprout(markdown)
+        markdown = Formatter.unify_giant_miranda_sprout(markdown)
+        # Locations
+        markdown = Formatter.unify_swamp_of_aeonia(markdown)
+        markdown = Formatter.unify_war_dead_catacombs(markdown)
+        markdown = Formatter.unify_mausoleums(markdown)
+        markdown = Formatter.unify_stargazers_ruins(markdown)
+        markdown = Formatter.unify_elphael(markdown)
+        markdown = Formatter.unify_leyndell(markdown)
+        markdown = Formatter.unify_leyndell_ashen_capital(markdown)
+        markdown = Formatter.unify_ordina(markdown)
+        markdown = Formatter.unify_gelmir(markdown)
+        markdown = Formatter.unify_raya_lucaria(markdown)
+        markdown = Formatter.unify_liurnia(markdown)
+        markdown = Formatter.unify_sellia(markdown)
+        markdown = Formatter.unify_shaded_castle(markdown)
+        # Weapons/Armor/Spells
+        markdown = Formatter.unify_sword_of_st_trina(markdown)
+        markdown = Formatter.unify_flame_spells(markdown)
+        # Skills
+        markdown = Formatter.unify_skills(markdown)
+
+        ## Misc
+        markdown = Formatter.unlink_builds(markdown)
+        markdown = Formatter.unlink_special_weaknesses(markdown)
+        markdown = Formatter.correct_crucible_aspect_spell_names(markdown)
+        markdown = Formatter.redirect_ashofwar_skill_links(markdown)
+
+        ## Reify custom fill-ins
+        markdown = Formatter.reify_bullets(markdown)
+
+        ## Mostly optional, but annoying, fluff
+        markdown = Formatter.suppress_patch_notes(markdown)
+        markdown = Formatter.remove_category_links_table(markdown)
+        markdown = Formatter.fix_drop_links_inside_tables(markdown)
+        markdown = Formatter.add_headers_to_tables(markdown)
+        markdown = Formatter.remove_elden_ring_links(markdown)
+
+        ## Final clean-up
+        markdown = Formatter.remove_floating_bullets(markdown)
+        markdown = Formatter.condense_multiple_spaces(markdown)
+        markdown = Formatter.condense_newlines(markdown)
+        
+        return markdown
+
+    ## Pre-Markdown formatting functions
+    # Not necessary so far, but you never know
+
+    ## Post-Markdown formatting functions
+    def prep_map_links(text):
+        """
+        [[Elden Ring Map here](/Interactive+Map?id=6861&lat=-88.11&lng=64.93&zoom=8&code=mapA "Elden Ring Interactive Map?id=6861&lat=-88.11&lng=64.93&zoom=8&code=mapA")]
+        [Elden Ring Map here](/Interactive+Map?id=6861&lat=-88.11&lng=64.93&zoom=8&code=mapA "Elden Ring Interactive Map?id=6861&lat=-88.11&lng=64.93&zoom=8&code=mapA")
+        """
+        return re.sub(r'\[(\[[^\]]+\]\([^\)]+\))\]', r'\1', text)
+
+    def reformat_links(text):
+        """
+        [Elden Ring Map here](/Interactive+Map?id=6861&lat=-88.11&lng=64.93&zoom=8&code=mapA "Elden Ring Interactive Map?id=6861&lat=-88.11&lng=64.93&zoom=8&code=mapA")
+        [[Interactive Map?id=6861&lat=-88.11&lng=64.93&zoom=8&code=mapA|Elden Ring Map here]]
+
+        [Leyndell, Royal Capital](/Leyndell,+Royal+Capital "Elden Ring Leyndell, Royal Capital")
+        [[Leyndell, Royal Capital|Leyndell, Royal Capital]]
+
+        [Commoner's Headband (Altered)](/Commoner's+Headband+(Altered) "Elden Ring Commoner's Headband (Altered)")
+        [[Commoner's Headband (Altered)|Commoner's Headband (Altered)]]
+        """
+        text = re.sub(r'\[([^\]]+)\]\(\/([^ ]+) \"[^\"]+\"\)', r'[[\2|\1]]', text)
+        text = re.sub(r'\+', r' ', text) # Removes ALL +'s... may need something more targeted here
+        return text
+
+    def remove_more_info_links(text):
+        """
+        [[Margit, The Fell Omen#capital-outskirts|More Info]]
+        """
+        text = re.sub(r'\[\[[^\|]+\|[Mm]ore [Ii]nfo\]\]', r'', text)
+        return text
+
+    def remove_map_links(text):
+        """
+        [[Interactive Map?id=6861&lat=-88.11&lng=64.93&zoom=8&code=mapA|Elden Ring Map here]]
+        """
+        text = re.sub(r'\[\[[Ii]nteractive [Mm]ap\?[^\]]+\]\]', r'', text)
+        return text
+
+    def map_link_cleanup(text):
+        """
+         See it on the .
+        """
+        text = re.sub(r' *See it on the +\.', r'', text)
+        return text
+    def suppress_patch_notes(text):
+        """
+        * Updated to patch **1.07**. See [[Patch Notes|Patch Notes]] for details.
+        """
+        text = re.sub(r'.*[Uu]pdated to [Pp]atch (\*\*)*1\.07(\*\*)*.*', r'', text)
+        return text
+
+    def remove_floating_bullets(text):
+        text = re.sub(r'\* \n', r'\n', text)
+        return text
+
+    def condense_multiple_spaces(text):
+        text = re.sub(r' {2,}', r' ', text)
+        return text
 
     def condense_newlines(text):
         text = re.sub(r'\n +', r'\n', text)
         return re.sub(r'(\n){2,}', r'\1\1', text)
 
     def replace_special_characters(text):
-        # Remove leading and trailing whitespace, and non-breaking spaces (&nbsp;)
         text = re.sub(r'[“”]', r'"', text)
         text = re.sub(r'’', r"'", text)
         text = text.replace('%27', "'")
@@ -37,9 +198,7 @@ class Formatter:
         text = text.replace('\u230b', '')  # Right Floor
         text = text.replace('\u00a0', ' ') 
         text = text.replace('\u00e9', 'é') # é=taken from printed output
-        text = text.replace(u'\xa0', ' ') 
-        # text = text.replace(r'é', r'é') # From CLI
-        # text = text.replace(r'é', r'é') # From CLI
+        text = text.replace(u'\xa0', ' ')
         text = text.replace('é', 'e')
         text = text.replace('é', 'e')
         return text.strip()
@@ -48,8 +207,8 @@ class Formatter:
         return re.sub(r' +', r' ', text)
 
     def remove_other_notes_bullet(text):
-        text = re.sub(r'\* Other notes and player tips go here\.*\n*', r'', text)
-        return re.sub(r'\* Other notes & Tips go here\.*\n*', r'', text)
+        text = re.sub(r'.*[Nn]otes (&|and) (player )*[Tt]ips.*', r'', text)
+        return text
 
     def remove_hemorrhage_links(text):
         return re.sub(r'\[\([0-9]+\)\]\(\/Hemorrhage[^\)]+\)', r'', text)
@@ -57,24 +216,28 @@ class Formatter:
     def remove_video_links(text):
         return re.sub(r'(\* )*\[+Video[^\]]+\]\([^\)]+\)\]*', r'', text)
 
+    def remove_image_links(text):
+        return re.sub(r'\[\[[^\|]+\|(.+) \(click for image\)\]\]', r'\1', text)
+
     # TODO: Revisit to make sure this isn't de-linking Great Runes pages
     def remove_elden_ring_links(text):
-        return re.sub(r'\[Elden Ring\]\(\/Elden\+Ring \'Elden Ring\'\)', r'Elden Ring', text)
+        return re.sub(r'\[\[([^\|]+)\|Elden Ring\]\]', r'Elden Ring', text)
     
     def remove_remaining_links(text):
         text = re.sub(r'\[here\]\(here\)', r'', text)
         text = re.sub(r'\[\[Interactive Map|(Minor Erdtrees)\]\]', r'\1', text)
         text = re.sub(r'\[\[Interactive Map\|\[.+(\])+', r'', text)
         return text
-    
-    def reformat_links(text):
-        text = re.sub(r'\[([0-9]{1,2})\]', r'(\1)', text) # Replace bracketed numbers with parentheses (for numbered materials)
-        # text =  re.sub(r'\[([^]]+)\]\(\/([^?\[\]]+) \'Elden Ring ([^\[\]]+)\'\)', r'[[\3|\1]]', text)
-        # text =  re.sub(r'\[([^]]+(\([0-9]{1,2}\))*)\]\(\/([^?\[\]]+) \'Elden Ring ([^\[\]]+)\'\)', r'[[\4|\1]]', text)
-        text =  re.sub(r'\[([^]]+(\([0-9]{1,2}\))*)\]\(\/([^?\[\]]+) \'Elden Ring ([^\']+)\'\)', r'[[\4|\1]]', text)
-        return text
-        # return re.sub(r'\[([^\[]+\[[0-9]\])\]\(\/[^\[\(]+[\[\(][0-9][\]\)] \'Elden Ring ([^\[\(]+[\[\(][0-9][\]\)])\'\)', r'[[\2|\1]\]', text)
 
+    def fix_brackets_in_item_names(text):
+        text = re.sub(r'\[([0-9]{1,2})\]', r'(\1)', text) # Replace bracketed numbers with parentheses (for numbered materials)
+        return text
+    
+    # def reformat_links(text):
+    #     text = re.sub(r'\[([0-9]{1,2})\]', r'(\1)', text) # Replace bracketed numbers with parentheses (for numbered materials)
+    #     text =  re.sub(r'\[([^]]+(\([0-9]{1,2}\))*)\]\(\/([^?\[\]]+) \'Elden Ring ([^\']+)\'\)', r'[[\4|\1]]', text)
+    #     return text
+    
     def remove_builds_header(text):
         return re.sub(r'\#+ Builds', r'', text)
 
@@ -96,22 +259,7 @@ class Formatter:
     def remove_anchor_links(text):
         return re.sub(r'(.+)( \[\[.+#[^\|]+\|\[More [Ii]nfo *\]\]\])', r'\1', text)
 
-    def remove_map_links(text):
-        text = re.sub(r'\(\[Map [Ll]ocation\]\(Map [Ll]ocation\)\)', r'', text)
-        text = re.sub(r'\[Map\]\(Map\)', r'', text)
-        text = re.sub(r'\[[Mm]ap\]\([Mm]ap\) [Ll]ink', r'', text)
-        text = re.sub(r' See them on the \[Map\]\(Map\)', r'', text)
-        text = re.sub(r' See .+ location in the Interactive Map \[here\]\(here\)', r'', text)
-        text = re.sub(r'\[See it on the map here\]\(See it on the map here\)', r'', text)
-        text = re.sub(r'\[+(.+)#.+\|\[[Mm]ore [Ii]nfo *\]\]+', r'', text) # Executioner's Greataxe only?
-        text = re.sub(r'\[\[map\]\]\(\/Interactive\+Map\?[^\)]+\)', r'', text) # Executioner's Greataxe only?
-        text = re.sub(r'\[\[[Mm]ap [Ll]ink\]\]\(\/Interactive\+Map[^\)]+\)', r'', text)
-        text = re.sub(r'\[(Elden Ring [Mm]ap [Hh]ere|Elden Ring [Mm]ap [Ll]ink [Hh]ere|[Mm]ap [Cc]oordinates|[Mm]ap [Ll]ink|Elden Ring [Ii]nteractive [Mm]ap [Ll]ink|Elden Ring [Mm]ap( [Ll]ink)*)\]\(\1\)', r'', text)
-        text = re.sub(r'\[\[Elden Ring [Ii]nteractive [Mm]ap [Ll]ink\]\]\(\/Interactive\+[Mm]ap[^\)]+\)', r'', text)
-        text = re.sub(r'\[\[Elden Ring [Mm]ap [Hh]ere\]\]\(\/Interactive\+[Mm]ap[^\)]+\)', r'', text)
-        return text
-
-    def remove_notes_after_sell_value(text):
+    def removeNotesAfterSellValue(text):
         return re.sub(r'(\* Sell Value: [0-9]+)[\s\S]*', r'\1', text)
 
     def fix_accented_e(text):
@@ -124,9 +272,9 @@ class Formatter:
         return text
 
     def remove_category_links_table(text):
-        # return re.sub(r'\| [\*\*]*\[\[([^\|]+)\|[^\]]+\]\][\*\*]* \|[\s\S]*', r'', text)
-        # return re.sub(r'\| [\*\*]*\[\[([^\|]+)\|.+Elden Ring.*\]\][\*\*]* \|\n\| \-\-\- \|\n[\s\S]*\n\n', r'', text)
-        return re.sub(r'\| (\*)*\[\[.+\|.+\]\](\*)* \|\n\| --- \|\n\| .+ \|', r'', text)
+        text = re.sub(r'\| (\*)*\[.+\]\(.+\) \|\n\| --- \|\n\| .+ \|', r'', text)
+        text = re.sub(r'\| (\*)*\[\[.+\|.+\]\](\*)* \|\n\| --- \|\n\| .+ \|', r'', text)
+        return text
     
     def add_headers_to_tables(text):
         rx = r'(\| (.+) \|\n)(\| [\s\S]*\n\n)'
@@ -152,31 +300,29 @@ class Formatter:
         text =  re.sub(r'\#+\n', r'\n', text)
         return re.sub(r' \n \n \n', r'\n\n', text)
 
-    def clean_dialogue(text):
+    def cleanDialogue(text):
         text = re.sub(r'<', r'\<', text)    
         return re.sub(r'>', r'\>', text)
 
-    # def replace_varre_e(text):
-    #     return re.sub(r'é', r'e', text)
-
     def unify_varre(text):
-        # return re.sub(r'Varre', r'Varré', text)
         return re.sub(r'Varré', r'Varre', text)
-
-    # def unify_champion_bracers(text):
-    #     return re.sub(r'Champion Gauntlets', r'Champion Bracers', text)
-    
-    # def unify_raging_wolf_gauntlets(text):
-    #     return re.sub(r'Bloody Wolf Gauntlets', r'Raging Wolf Gauntlets', text)
 
     def unify_sellia(text):
         return re.sub(r'\[\[Sellia\|(.+)\]\]', r'[[Sellia, Town of Sorcery|\1]]', text)
     
     def unify_astel(text):
         return re.sub(r'\[\[Astel Naturalborn of the Void\|(.+)\]\]', r'[[Astel, Naturalborn of the Void|Flame, Grant Me Strength]]', text)
-    
-    def unify_flame_grant_me_strength(text):
-        return re.sub(r'\[\[Flame,+ Grant [Mm]e Strength\|(.+)\]\]', r'[[Flame, Grant Me Strength|Flame, Grant Me Strength]]', text)
+
+    def unify_flame_spells(text):
+        text = re.sub(r'\[\[Flame,* Grant [Mm]e Strength\|(.+)\]\]', r'[[Flame, Grant Me Strength|Flame, Grant Me Strength]]', text)
+        text = re.sub(r'\[\[Flame,* Fall Upon Them\|(.+)\]\]', r'[[Flame, Fall Upon Them|Flame, Fall Upon Them]]', text)
+        text = re.sub(r'\[\[Flame,* Protect Me\|(.+)\]\]', r'[[Flame, Protect Me|Flame, Protect Me]]', text)
+        text = re.sub(r'\[\[Flame,* Cleanse Me\|(.+)\]\]', r'[[Flame, Cleanse Me|Flame, Cleanse Me]]', text)
+        text = re.sub(r'\[\[Surge,* O Flame!*\|(.+)\]\]', r'[[Surge, O Flame!|Surge, O Flame!]]', text)
+        text = re.sub(r'\[\[Burn,* O Flame!*\|(.+)\]\]', r'[[Burn, O Flame!|Burn, O Flame!]]', text)
+        text = re.sub(r'\[\[Whirl,* O Flame!*\|(.+)\]\]', r'[[Whirl, O Flame!|Whirl, O Flame!]]', text)
+        text = re.sub(r'\[\[O,* Flame!*\|(.+)\]\]', r'[[O, Flame!|O, Flame!]]', text)
+        return text
     
     def unify_alexander(text):
         return re.sub(r'\[\[Iron Fist Alexander\|(.+)\]\]', r'[[Alexander|\1]]', text)
@@ -190,15 +336,6 @@ class Formatter:
     def unify_putrid_corpse(text):
         return re.sub(r'\[\[Scarlet Rot Zombie\|(.+)\]\]', r'[[Putrid Corpse|\1]]', text)
     
-    # def unify_eleonora(text):
-    #     return re.sub(r'Bloody Finger Eleonora', r'Eleonora, Violet Bloody Finger', text)
-
-    # def unify_rat(text):
-    #     return re.sub(r'\[\[Rat(s*)\|(.+)\]\]', r'[[Giant Rat\1|Giant Rat\1]]', text)
-    
-    # def unify_celebrant(text):
-    #     return re.sub(r'\[\[Festive Dancer\|(.+)\]\]', r'[[Celebrant|Celebrant]]', text)
-
     def unify_miranda_sprout(text):
         text = re.sub(r'\[\[Poison Flower\|(.+)\]\]', r'[[Miranda Sprout|Miranda Sprout]]', text)
         return re.sub(r'\[\[Miranda Flower\|(.+)\]\]', r'[[Miranda Sprout|Miranda Sprout]]', text)
@@ -207,12 +344,6 @@ class Formatter:
         text = re.sub(r'\[\[Giant Poison Flower\|(.+)\]\]', r'[[Giant Miranda Sprout|Giant Miranda Sprout]]', text)
         return re.sub(r'\[\[Giant Miranda Flower\|(.+)\]\]', r'[[Giant Miranda Sprout|Giant Miranda Sprout]]', text)
     
-    # def unify_lesser_mad_pumpkin_head(text):
-    #     return re.sub(r'\[\[Lesser (Mad )*Pumpkin Head\|(.+)\]\]', r'[[Lesser Mad Pumpkin Head|Lesser Mad Pumpkin Head]]', text)
-    
-    # def unify_school_of_graven_mages(text):
-    #     return re.sub(r'Arcane Sphere of Faces', r'School of Graven Mages', text)
-
     def unify_shaded_castle(text):
         return re.sub(r'\[\[Shaded Castle\|(.+)\]\]', r'[[The Shaded Castle|\1]]', text)
 
@@ -224,9 +355,6 @@ class Formatter:
     
     def unify_war_dead_catacombs(text):
         return re.sub(r'\[\[War-[Dd]ead [Cc]atacombs\|(.+)\]\]', r'[[The War-Dead Catacombs|\1]]', text)
-    
-    # def unify_vulgar_militiamen(text):
-    #     return re.sub(r'\[\[Vulgar Militant\|(.+)\]\]', r'[[Vulgar Militiamen|Vulgar Militiamen]]', text)
     
     def unify_d(text):
         text = re.sub(r'\[\[D\|(.+)\]\]', r'[[D, Hunter of the Dead|\1]]', text)
@@ -294,7 +422,12 @@ class Formatter:
 
     def unify_leyndell(text):
         text = re.sub(r'\[\[Leyndell\|(.+)\]\]', r'[[Leyndell, Royal Capital|\1]]', text)
-        return re.sub(r'\[\[Leyndell[,]* Royal Capital\|(.+)\]\]', r'[[Leyndell, Royal Capital|\1]]', text)
+        text = re.sub(r'\[\[Leyndell[,]* Royal Capital\|(.+)\]\]', r'[[Leyndell, Royal Capital|\1]]', text)
+        text = re.sub(r'\[\[Leyndell[,]* Royal Capital \(Legacy Dungeon\)\|(.+)\]\]', r'[[Leyndell, Royal Capital (Legacy Dungeon)|\1]]', text)
+        return text
+    
+    def unify_leyndell_ashen_capital(text):
+        return re.sub(r'\[\[Leyndell Ashen Capital\|(.+)\]\]', r'[[Leyndell, Ashen Capital|\1]]', text)
     
     def unify_gelmir(text):
         return re.sub(r'\[\[Mt\. Gelmir\|(.+)\]\]', r'[[Mt Gelmir|\1]]', text)
@@ -327,7 +460,6 @@ class Formatter:
         return re.sub(r'\[\[Wolf\|(.+)\]\]', r'[[Lone Wolf|\1]]', text)
     
     def unify_kindred(text):
-        # text = re.sub(r'\[\[Lesser Kindred of Rot \(Pests\)\|(.+)\]\]', r'[[Lesser Kindred of Rot|\1]]', text)
         return re.sub(r'\[\[Lesser Kindred of Rot \(Pests\)\|(.+)\]\]', r'[[Lesser Kindred of Rot|\1]]', text)
     
     def unify_skills(text):
@@ -336,9 +468,6 @@ class Formatter:
         text = re.sub(r'\[\[Glintstone Pebble Skill\|(.+)\]\]', r'[[Glintstone Pebble (Skill)|\1]]', text)
         return re.sub(r'\[\[Great Oracular Bubble Skill\|(.+)\]\]', r'[[Great Oracular Bubble (Skill)|\1]]', text)
     
-    # def unify_mt_gelmir(text):
-    #     return re.sub(r'\[\[(Mt\. Gelmir)\|(Mt\. Gelmir)\]\]', r'[[Mt Gelmir|\2]]', text)
-
     def unify_liurnia(text):
         return re.sub(r'\[\[Liurnia\|(.+)\]\]', r'[[Liurnia of the Lakes|\1]]', text)
     
@@ -358,7 +487,7 @@ class Formatter:
     def reify_varre_e(text):
         return re.sub(r'%E-LOWERCASE-ACCENTED%', 'é', text) # é
 
-    def perform_targeted_corrections(name, text):
+    def applyTargetedCorrections(name, text):
         correction = text
 
         # Would use match here if Pylance recognized my interpreter as being newer than Python 3.10...
@@ -370,8 +499,6 @@ class Formatter:
             correction = re.sub(r'Below shows where.*', r'', correction)
             correction = re.sub(r"Alabaster Lords' Pull", r"Alabaster Lord's Pull", correction)
             correction = Formatter.condense_newlines(correction)
-        # elif name == 'Ancestral Spirit's Horn':
-        #     correction = re.sub(r'\| \[\[([^\|]+)\|Elden Ring [^\]]+\]\] \|[\s\S]*', r'', text)
         elif name == 'Aspects of the Crucible: Horns':
             correction = re.sub(r'\[Ramparts\]\(Ramparts\)', r'Ramparts', text)
         elif name == "Assassin's Crimson Dagger":
@@ -381,17 +508,22 @@ class Formatter:
         elif name == 'Beast-Repellent Torch':
             correction = re.sub(r'aroma pacifies wild beasts. Torches', r'aroma pacifies wild beasts.*\n\n*Torches', text)
         elif name == 'Beast Clergyman':
-            correction = re.sub(r'\| \[\[Consumables\|[\s\S]*', r'', text)
+            correction = re.sub(r'\*(.|\n)*Destined Death\.\*', r'', text)
+            correction = Formatter.condense_newlines(correction)
         elif name == 'Bloodstained Dagger':
             correction = re.sub(r'#gsc\.tab=0', r'', text)
         elif name == 'Cipher Pata':
             correction = re.sub(r'\[\[Unblockable Blade Skill\|(.+)\]\]', r'[[Unblockable Blade|\1]]', text)
+        # elif name == 'Cracked Pot':
+        #     correction = re.sub(r'vessel', r'bessel', text)
         elif name == 'Cuckoo Greatshield':
             correction = re.sub(r'\[Farming route]\(.+\'Farming route\'\)', r'Farming route', text)
         elif name == "Diallos's Mask":
-            correction = re.sub(r' \(\[Location.+\)\)', r'', text)
+            correction = re.sub(r' \(\[\[file[^\]]+\]\]\)', r'', text)
         elif name == 'Elden Remembrance':
             correction = re.sub(r'\[Sword Saint Guide\]\(https:\/\/youtu\.be/iJn4mSsa1iM \'Elden Ring Builds#blackflamebushido\'\)', r'', text)
+        elif name == 'Fallingstar Beast':
+            correction = re.sub(r' \[\[Fallingstar Beast#[^\]]+\]\]', r'', text)
         elif name == 'Fia':
             correction = re.sub(r'\[Sword Saint Guide\]\(https:\/\/youtu\.be/iJn4mSsa1iM \'Elden Ring Builds#blackflamebushido\'\)', r'', text)
         elif name == 'Ivory-Draped Tabard':
@@ -408,14 +540,10 @@ class Formatter:
             correction = re.sub(r'\[\[Map Link\]\(\/Interactive\+Map\?[^\)]+\)\]', r'', text)
         elif name == 'Royal Greatsword':
             correction = re.sub(r'\/\/Strength', r'Strength', text)
-        elif name == 'Vulgar Militia Saw':
-            correction = re.sub(r'\+ \[Example farming route\]\(\/file\/Elden\-Ring\/vulgar\_militia\_saw\.png \'Example farming route\'\)', r'', text)
         elif name == 'Flowing Curved Sword':
             correction = re.sub(r' See it on the +\.', r'', text)
         elif name == 'Nox Flowing Sword':
             correction = re.sub(r'\[\[(Flowing Form)', r'[[\1 (Nox Flowing Sword)', text)
-        # elif name == 'Nox Flowing Hammer':
-        #     correction = re.sub(r'\[\[(Flowing Form) \(Nox Flowing Hammer\)', r'[[\1', text)
         elif name in ['Sorcerer Manchettes', 'Ragged Wolf Set']:
             correction = re.sub(r'\[\[VS ', r'[[', text)
         elif name == "Smithing-Stone Miner's Bell Bearing (3)":
@@ -427,11 +555,13 @@ class Formatter:
         elif name == "Troll's Golden Sword":
             correction = re.sub(r'—', r'--', text)
         elif name == 'Volcano Manor':
-            correction = re.sub(r'\* \[\[Interactive Map\?id=6128.*', r'', text)
+            correction = re.sub(r'\* (\[\[Diallos.+|\[\[Liurnia of the Lakes.+|\?id.+)', r'', text)
+            correction = Formatter.condense_newlines(correction)
+        elif name == 'Vulgar Militia Saw':
+            correction = re.sub(r'	 \[\[file\/.*', r'', text)
+            correction = Formatter.condense_newlines(correction)
         elif name == 'Zweihander':
             correction = re.sub(r'ä', r'a', text)
-        # elif name == 'Bolt of Gransax':
-        #     correction = re.sub(r'\[\[(Leyndell Royal Capital) \(Legacy Dungeon\)#[^\]]+\]\]', r'[[\1|\1]]', text)
         elif name == 'Torch':
             correction = re.sub(r' ### Elden Ring Torch Moveset[\'\,\'\/\(\)\+ \.\|\[\]#\*\w\&\n]*', r'', text)
 

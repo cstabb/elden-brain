@@ -6,7 +6,6 @@ from constants import *
 
 
 class Category(Enum):
-    NONE = 'None'
     ARMOR = 'Armor'
     BOSSES = 'Bosses'
     ENEMIES = 'Creatures and Enemies'
@@ -85,17 +84,24 @@ item_subcategory_paths = {
 }
 
 name_overrides = {
+    # NPCs
     'Ranni the Witch':                          'Ranni', 
     'Torrent (Spirit Steed)':                   'Torrent', 
     'Preceptor Seluvis':                        'Seluvis', 
     'Gurranq Beast Clergyman':                  'Gurranq, Beast Clergyman', 
     'Morgott the Omen King':                    'Morgott, the Omen King', 
-    'Moongrum Carian Knight':                   'Moongrum, Carian Knight', 
     'Iron Fist Alexander':                      'Alexander', 
+
+    # Locations
+    'Leyndell Royal Capital (Legacy Dungeon)':  'Leyndell, Royal Capital (Legacy Dungeon)',
+
+    # Bosses, Creatures, Enemies
+    'Moongrum Carian Knight':                   'Moongrum, Carian Knight', 
     'Giant Dog':                                'Monstrous Dog', 
     'Giant Crow':                               'Monstrous Crow',
     'Gauntlets':                                'Chain Gauntlets', 
     'Lesser Kindred of Rot (Pests)':            'Lesser Kindred of Rot', 
+
     # Spells
     'Flame Grant me Strength':                  'Flame, Grant Me Strength', 
     'Flame Grant Me Strength':                  'Flame, Grant Me Strength', 
@@ -106,6 +112,7 @@ name_overrides = {
     'Burn O Flame!':                            'Burn, O Flame!', 
     'Whirl O Flame!':                           'Whirl, O Flame!', 
     'O Flame!':                                 'O, Flame!', 
+
     # Skills
     'Parry Skill':                              'Parry (Skill)', 
     'Carian Greatsword Skill':                  'Carian Greatsword (Skill)', 

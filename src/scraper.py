@@ -98,26 +98,27 @@ class Scraper:
                     link = section.get('href')
                     if this_section != '':
                         contents[this_section].append(link)
-                    # print(link)
         
         contents_str = ""
         for key, vals in contents.items():
             # print(f"KEY===\n{key}\nVAL===\n{vals}\n\n")
-            contents_str += "\n### " + key + "\n\n"
+            contents_str += '\n### ' + key + '\n\n'
             for val in vals:
-                val = re.sub(r"\+", r" ", val)
-                val = re.sub(r"[\/\n]", r"", val)
-                val = re.sub(r"(.+)", r"[[\1|\1]]", val)
-                contents_str += "%BULLET% " + val + "\n"
+                this_val = val
+                this_val = re.sub(r'\+', r' ', this_val)
+                this_val = re.sub(r'[\/\n]', r'', this_val)
+                this_val = re.sub(r'(.+)', r'[[\1|\1]]', this_val)
+                contents_str += '%BULLET% ' + this_val + '\n'
 
         entity.content = contents_str
 
     def scrape(self, entity, force_image_download=False):
         """
         """
-        if entity.category == Category.LEGACY_DUNGEONS:
+        if entity.category == Category.LEGACY_DUNGEONS.value:
             self.scrapeLegacyDungeon(entity, force_image_download)
-        elif entity.category == Category.SKILLS:
+            return
+        elif entity.category == Category.SKILLS.value:
             self.log.error("Skills can't be scraped individually, use scrapeSkills() instead")
             return
         
@@ -138,7 +139,6 @@ class Scraper:
             infobox = content_block.find('div', attrs={'class', 'infobox'})
 
         ## Process the item's main image
-        image = None
         try:
             image_tag = infobox.find('img') # First img tag always contains what we want
             image_src = image_tag['src']
@@ -148,99 +148,114 @@ class Scraper:
                 image_url = image_src
             else:
                 image_url = WIKI_URL + image_src
-            image_data = requests.get(image_url).content
-            image = Image(image_data, image_name)
+            
+            image_data = None
 
-            if force_image_download or not os.path.isfile(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + image_name):
-                image.write()
+            # Write the associated image, if it doesn't exist
+            try:
+                if not os.path.isfile(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + self.image.name):
+                    image_data = requests.get(image_url).content
+            except AttributeError:
+                pass    # Image doesn't exist
+
+            entity.addImage(image_name, image_data)
         except:
+            # Image doesn't exist
             pass
-
-        # image_data, image_name = 
-
+        
         # Throw out all other img tags
         for img in content_block("img"):
             img.decompose()
 
-        def parse_description(parent, description):
+        def parseDescription(parent, description):
             ems = parent.find_all('em')
             for line in ems:
-                values = [str(x).replace("<em>", "") for x in line.contents]
+                values = [str(x).replace('<em>', '') for x in line.contents]
                 for i, val in enumerate(values):
-                    if val != "<br/>":
-                        values[i] = "<em>"+val+"</em>"
+                    if val != '<br/>':
+                        values[i] = '<em>'+val+'</em>'
                 description += ' '.join(values) + ' '
             if len(ems) > 0:
-                description += "<br><br>"
+                description += '<br><br>'
             return description
         
         # Get description
-        description = ""
+        description = ''
         for item in content_block.find_all('div', attrs={'class', 'lineleft'}):
-            # print(f"\n\BLOCK === \n{block}")
+            # print(f'\n\BLOCK === \n{block}')
             paragraphs = item.find_all('p')
 
             if len(paragraphs) == 0:
-                description = parse_description(item, description)
+                description = parseDescription(item, description)
             else:
                 for paragraph in paragraphs:
-                    # print(f"\n\PARAGRAPH === \n{paragraph}")
-                    description = parse_description(paragraph, description)
-        # print(f"\n\nDESCRIPTION === \n{description}")
-        description = description.replace("</em><em>", "").replace("</em><br/><em>", "")
-        # print(f"\n\nDESCRIPTION === \n{description}")
+                    # print(f'\n\PARAGRAPH === \n{paragraph}')
+                    description = parseDescription(paragraph, description)
+        # print(f'\n\nDESCRIPTION === \n{description}')
+        description = description.replace('</em><em>', '').replace('</em><br/><em>', '')
+        # print(f'\n\nDESCRIPTION === \n{description}')
 
         # Drop these sections
         sections_to_drop = [
-            "Moveset", 
-            "Upgrades", 
-            "Build", 
-            "Shop", 
-            "Combat [Ii]nformation", 
-            "Gallery", 
-            "Walkthrough", 
-            "Map", 
-            "Guide", 
-            "GALLERY", 
-            "All .*Pieces", 
-            # "Boss",
-            # "All ", # Final section of armor sets pages (space included to avoid collision with All-Knowing Set)
+            'Moveset', 
+            'Upgrades', 
+            'Build', 
+            'Shop', 
+            'Combat [Ii]nformation', 
+            'Gallery', 
+            'Walkthrough', 
+            'Map', 
+            'Guide', 
+            'GALLERY', 
+            'All .*Pieces', 
+            # 'Boss',
+            # 'All ', # Final section of armor sets pages (space included to avoid collision with All-Knowing Set)
         ]
+
+        # Throw out Entity Type tables (e.g. Miranda Sprout, Putrid Corpse)
+        for responsive_table in content_block.find_all('div', attrs={'class': 'table-responsive'}):
+            try:
+                if responsive_table.find('td').string == 'Enemy Type':
+                    responsive_table.decompose()
+            except AttributeError:
+                pass    # Not every page has an Entity Type table
 
         contents = {}
 
         for col in content_block.find_all('h3', attrs={'class': 'bonfire'}):
-            #print(f"COLUMN: {str(col)}")
+            #print(f'COLUMN: {str(col)}')
             this_section = re.sub(u'\xa0', ' ', str(col))
-            contents[this_section] = ""
+            contents[this_section] = ''
 
             for section in col.find_next_siblings(['h3', 'ul', 'ol', 'p', 'div']):
-                # print(f"NAME: {str(section.name)}")
-                # print(f"SECTION: {str(section.contents)}")
-                if section.name in ['h3'] or "Click below for a list of all possible Ashes of War that can be applied" in str(section):
+                # print(f'NAME: {str(section.name)}')
+                # print(f'SECTION: {str(section.contents)}')
+                # if section.name in ['div']:
+                #     print(section)
+                if section.name in ['h3'] or 'Click below for a list of all possible Ashes of War that can be applied' in str(section):
                     break
                 else:
-                    # print(f"SECTION: {str(section.contents)}")
+                    # print(f'SECTION: {str(section.contents)}')
                     contents[this_section] += str(section)
 
-        # print(f"FIRST\n\n{contents.keys()}\n")
+        # print(f'FIRST\n\n{contents.keys()}\n')
 
         # Find the key of the Drops header
-        header_key = ""
+        header_key = ''
         for header, item in contents.items():
-            if re.search(r"Drop Rates<\/h3>", header):
+            if re.search(r'Drop Rates<\/h3>', header):
                 header_key = header
 
         if header_key in contents:
             table = bs(contents[header_key], 'html.parser') # Re-Soupify
-            contents[header_key] = ""   # Clear the value
+            contents[header_key] = ''   # Clear the value
             for row in table.find_all('tr')[1:]:
-                # print(f"ROW ===\n{row}")
+                # print(f'ROW ===\n{row}')
                 for item in row.find('a'):
                     link = item.string
-                    link = re.sub(r"(.+)", r"%BULLET% [[\1|\1]]\n", link)
+                    link = re.sub(r'(.+)', r'%BULLET% [[\1|\1]]\n', link)
                     contents[header_key] += link
-                    # print(f"LINK ===\n{link}")
+                    # print(f'LINK ===\n{link}')
 
         # Drop the undesirable sections from contents
         keys_to_drop = []
@@ -253,7 +268,7 @@ class Scraper:
         for key in keys_to_drop:
             del contents[key]
         
-        # print(f"SECOND\n\n{contents}")
+        # print(f'SECOND\n\n{contents}')
 
         headers = {
             r'<h3 class=\"bonfire\">[Ww]here to [Ff]ind[^<]+<\/h3>':            r"## Location\n\n",
@@ -274,7 +289,7 @@ class Scraper:
             r'<h3 class=\"bonfire\">Elden Ring.+[Dd]rops<\/h3>':                r"## Drops\n\n",
             r'<h3 class=\"bonfire\">.+[Qq]uest<\/h3>':                          r"## Quest\n\n",
             r'<h3 class=\"bonfire\">.+[Ss]et [Aa]rmor [Pp]ieces[^<]+<\/h3>':    r"## Set Armor Pieces\n\n",
-            r'<h3 class=\"bonfire\">.+[Ss]et [Pp]ieces[^<]+<\/h3>':             r"## Set Pieces\n\n",
+            r'<h3 class=\"bonfire\".+>.+[Ss]et [Pp]ieces[^<]+<\/h3>':             r"## Set Pieces\n\n",
             r'<h3 class=\"bonfire\">.+[Ss]et in Elden Ring<\/h3>':              r"## Set Information\n\n",
             r'<h3 class=\"bonfire\">.+Creatures, Enemies, and Bosses<\/h3>':    r"## Creatures, Enemies, and Bosses\n\n",
             r'<h3 class=\"bonfire\">.+All Items.+<\/h3>':                       r"## Items\n\n",
@@ -302,7 +317,6 @@ class Scraper:
 
         # print(f"\nTHIRD ===\n{contents_string}")
 
-        entity.image = image
         entity.content = contents_string
 
 
@@ -337,6 +351,7 @@ class Scraper:
             }
 
             names = list(set(names) - exclusions)
+            names.sort()
 
             names_by_category = {}
             names_by_category[Category.BOSSES.value] = names
@@ -379,6 +394,7 @@ class Scraper:
             }
 
             names = list(set(names) - exclusions)
+            names.sort()
             
             names_by_category = {}
             names_by_category[Category.ENEMIES.value] = names
@@ -423,6 +439,13 @@ class Scraper:
                             names.append(path)
                         except:
                             pass    # Fail silently
+
+                # This should probably be done on a subcategory basis
+                exclusions = [
+                    'Torches', 
+                ]
+                names = list(set(names) - set(exclusions))
+                names.sort()
 
                 return names
 
@@ -496,18 +519,20 @@ class Scraper:
             names = names[0:-6]   # Last several elements contain throwaway urls
 
             additions = [
-                "Three Sisters", 
-                "Uld Palace Ruins", 
+                'Three Sisters', 
+                'Uld Palace Ruins', 
             ]
 
             names += additions
 
             exclusions = set([
-                "Torrent (Spirit+Steed)", 
-                "Wardead Catacombs", 
+                'Torrent (Spirit Steed)', 
+                'Wardead Catacombs', 
+                'Legacy Dungeons', 
             ] + LEGACY_DUNGEONS_LIST)
 
             names = list(set(names) - exclusions)
+            names.sort()
 
             names_by_category = {}
             names_by_category[Category.LOCATIONS.value] = names
@@ -528,6 +553,7 @@ class Scraper:
                     names.append(path)
 
             names = list(set(names))    # Unique
+            names.sort()
 
             names_by_category = {}
             names_by_category[Category.SHIELDS.value] = names
@@ -572,30 +598,30 @@ class Scraper:
                     # print(f"NPCS MERCHANTS = {destination}")
             
             additions = [
-                "Torrent (Spirit Steed)", 
-                "Volcano Manor Spirit", 
-                "Eleonora, Violet Bloody Finger", 
-                "Two Fingers", 
+                'Torrent (Spirit Steed)', 
+                'Volcano Manor Spirit', 
+                'Eleonora, Violet Bloody Finger', 
+                'Two Fingers', 
             ]
 
             names += additions
 
             exclusions = {
-                "Isolated Merchants", 
-                "Nomadic Merchants", 
-                "Nomadic Merchant Mohgwyn Palace", 
-                "Volcano Manor Spirit", 
-                "Merchants#blacksmithing", 
-                "Merchants#equipment", 
-                "Merchants#generalgoods", 
-                "Merchants#special", 
-                "Merchants#spells",
-                "Smithing Master Iji", 
-                "Blacksmith Hewg", 
-                "Miriel Pastor of Vows",   # 2 Miriel links are scraped, 'Miriel, Pastor of Vows' is the good one
+                'Isolated Merchants', 
+                'Nomadic Merchants', 
+                'Nomadic Merchant Mohgwyn Palace', 
+                'Merchants#blacksmithing', 
+                'Merchants#equipment', 
+                'Merchants#generalgoods', 
+                'Merchants#special', 
+                'Merchants#spells',
+                'Smithing Master Iji', 
+                'Blacksmith Hewg', 
+                'Miriel Pastor of Vows',   # 2 Miriel links are scraped, 'Miriel, Pastor of Vows' is the good one
             }
 
             names = list(set(names) - exclusions)
+            names.sort()
 
             names_by_category = {}
             names_by_category[Category.NPCS.value] = names
@@ -627,6 +653,7 @@ class Scraper:
             names += additions
 
             names = list(set(names))    # Unique
+            names.sort()
               
             names_by_category = {}
             names_by_category[Category.SKILLS.value] = names
@@ -648,6 +675,7 @@ class Scraper:
                         names.append(path)
 
             names = list(set(names))    # Unique
+            names.sort()
 
             names_by_category = {}
             names_by_category[Category.SPELLS.value] = names
@@ -667,6 +695,7 @@ class Scraper:
                 names.append(path)
 
             names = list(set(names))    # Unique
+            names.sort()
 
             names_by_category = {}
             names_by_category[Category.TALISMANS.value] = names
@@ -686,6 +715,7 @@ class Scraper:
                 names.append(path)
 
             names = list(set(names))    # Unique
+            names.sort()
 
             names_by_category = {}
             names_by_category[Category.WEAPONS.value] = names
@@ -718,6 +748,8 @@ class Scraper:
             ]
 
             armor_sets_names += additions
+            armor_sets_names = list(set(armor_sets_names))
+            armor_sets_names.sort()
 
             # And the rest
             def getNamesForArmorSubcategory(subcategory, additions=[], exclusions=[]):
@@ -736,6 +768,7 @@ class Scraper:
                 names += additions
 
                 names = list(set(names) - set(exclusions))
+                names.sort()
 
                 return names
             
@@ -766,7 +799,12 @@ class Scraper:
                 destination = item.get('href')
                 names.append(self.scraper.convertPathToEntityName(destination))
 
-            names = list(set(names))    # Unique
+            exclusions = [
+                'Roderika', 
+            ]
+
+            names = list(set(names) - set(exclusions))    # Unique
+            names.sort()
 
             names_by_category = {}
             names_by_category[Category.SPIRIT_ASH.value] = names
@@ -793,6 +831,9 @@ class Scraper:
                 Category.SPIRIT_ASH.value: self.getNamesForSpiritAshes
             }
 
-            names_by_category = name_function_by_category[category]()
+            try:
+                names_by_category = name_function_by_category[category]()
+            except KeyError:
+                raise KeyError("Category does not exist")
             
             return names_by_category

@@ -4,6 +4,7 @@ import time
 from enum import Enum
 
 from markdownify import markdownify as md
+import flatdict
 
 from constants import *
 from objects import *
@@ -43,8 +44,7 @@ class EldenBrain:
         """
         categories = []
         for category in Category:
-            if category not in [Category.NONE, Category.SKILLS, Category.HIDDEN]:
-                categories.append(category.value)
+            categories.append(category.value)
 
         return categories
 
@@ -72,19 +72,24 @@ class EldenBrain:
         else:
             self._createEntity(name, category)
 
-    def _createByCategory(self, category, force_overwrite=False):
+    def _createByCategory(self, category):
         """
         Create all entities that fall within a known category.
         """
+        self.log.info(f"Creating all pages in the {category} category...")
+
         if category == 'Skills':
             self._createSkills()
         elif category == 'Hidden':
             self._createHidden()
         else:
-            names = self.scraper.getNamesByCategory(category)
-            names.remove('Skills')
-            for name in names:
-                self._createEntity(name, category)
+            category_tree = self.scraper.getNamesByCategory(category)
+
+            fd =  dict(flatdict.FlatDict(category_tree, delimiter='/'))
+
+            for category, names in fd.items():
+                for name in names:
+                    self._createEntity(name, category)
 
     def _createEntity(self, name, category=''):
         """
@@ -93,7 +98,7 @@ class EldenBrain:
         If category is not known, as in the case of a one-off create(), the entity 
         is written to the Vault's top level.
         """
-        self.log.info(f"Creating {name} entity...")
+        self.log.info(f"Creating {name}...")
 
         entity = Entity(name, category=category)
         self.scraper.scrape(entity)
@@ -110,7 +115,8 @@ class EldenBrain:
 
         skills = []
         for name, data in skills_data.items():
-            entity = Entity(name, category = Category.SKILLS.value, content=data)
+            entity = Entity(name, category = Category.SKILLS.value)
+            entity.content = data
             skills.append(entity)
 
         self.log.info(f"Creating {len(skills)} Skills...")
@@ -145,6 +151,12 @@ class EldenBrain:
 
                 time.sleep(0.001)   # Necessary to allow Obsidian time to recognize the new file
 
+    def _checkCategory(self, category):
+        # Check if category is valid
+        valid_categories = [category.value for category in Category] + ['']
+        if category not in valid_categories:
+            raise ValueError('Invalid category, use getCategories() to see valid categories')
+
 
 class Entity:
     def __init__(self, name, category='', image=None):
@@ -161,8 +173,8 @@ class Entity:
         self.image = image
 
         self.tags = []
-        if category != Category.NONE.value:
-            self.tags.append(re.sub(r' +', r'', category.value))
+        if self.category != '':
+            self.tags += [re.sub(r' +', r'', category) for category in category.split('/')]
 
         # Hide 'About' items
         if re.search(r'^About ', self.name):
@@ -193,7 +205,8 @@ class Entity:
             if self.category in [Category.NPCS.value]:
                 markdown = Formatter.cleanDialogue(markdown)
 
-            markdown = Formatter.applyFixes(markdown)
+            markdown = Formatter.applyCharacterFixes(markdown)
+            markdown = Formatter.applyTextFixes(markdown)
 
             # Targeted corrections
             markdown = Formatter.applyTargetedCorrections(self.name, markdown)
@@ -202,10 +215,9 @@ class Entity:
         else:
             self.__dict__[name] = value
 
-    # def fromMd(filename):
-    #     #TODO
-    #     return
-
+    def addImage(self, name, data):
+        self.image = Image(name, data)
+        
     def addTag(self, tag):
         tag = re.sub(r' +', r'', tag)
         if tag not in self.tags:
@@ -225,31 +237,29 @@ class Entity:
 
         # Create destination directory if it doesn't exist
         if not os.path.exists(path):
-            os.mkdir(path)
-        
+            os.makedirs(path, exist_ok=True)
+
         tags_md_string = ''
+        if self.tags:
+            tags = ['#'+tag for tag in self.tags]
+            tags_md_string = ' '.join(tags) + f'\n\n'
 
-        # Front matter formatting--works, but ugly!
-        # if additional_tags == []:
-        #     additional_tags = ''
-        # else:
-        #     additional_tags = '\n- ' + '\n- '.join(additional_tags)
-        # tags_md_string = f'---\ntags:\n- {self.category.value}{additional_tags}\n---\n\n'
-        # if self.category is not None:
-        #     category_string = re.sub(r' +', r'', self.category.value)
-        #     self.tags.insert(0, category_string)
-
-        tags = ['#'+tag for tag in self.tags]
-
-        tags_md_string = ' '.join(tags) + f'\n\n'
-
+        image = ''
         if self.image is not None:
             image = '![['+self.image.name+']]\n\n'
 
+        content_md_string = ''
         if self.content != '':
             content_md_string = f'{self.content}'
 
         output_str = tags_md_string + image + content_md_string
+
+        # Write the associated image, if it doesn't exist
+        try:
+            if not os.path.isfile(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + self.image.name):
+                self.image.write()
+        except AttributeError:
+            pass    # Image doesn't exist
         
         f = open(path + filename+'.md', 'w')
         f.write(output_str)
@@ -257,9 +267,9 @@ class Entity:
         
 
 class Image:
-    def __init__(self, data, name):
-        self.data = data
+    def __init__(self, name, data):
         self.name = name
+        self.data = data
     
     def write(self, path=None):
         """
