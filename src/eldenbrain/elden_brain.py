@@ -174,7 +174,9 @@ class Entity:
 
         self.tags = []
         if self.category != '':
-            self.tags += [re.sub(r' +', r'', category) for category in category.split('/')]
+            for category in category.split('/'):
+                self.addTag(category)
+            # self.tags += [re.sub(r' +', r'', category) for category in category.split('/')]
 
         # Hide 'About' items
         if re.search(r'^About ', self.name):
@@ -222,7 +224,7 @@ class Entity:
         self.image = Image(name, data)
         
     def addTag(self, tag):
-        tag = re.sub(r' +', r'', tag)
+        tag = re.sub(r' +', r'', tag.title())
         if tag not in self.tags:
             self.tags.append(tag)
 
@@ -244,6 +246,7 @@ class Entity:
 
         tags_md_string = ''
         if self.tags:
+            print(self.tags)
             tags = ['#'+tag for tag in self.tags]
             tags_md_string = ' '.join(tags) + f'\n\n'
 
