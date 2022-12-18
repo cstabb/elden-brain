@@ -195,6 +195,9 @@ class Entity:
 
             text = value
 
+            ## Pre-markdown fixes
+            text = Formatter.applyPreMarkdownFixes(text)
+
             ## Markdownify
             markdown = md(text)
 

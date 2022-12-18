@@ -74,19 +74,19 @@ class Scraper:
         """
         """
         target_section_names = [
-            "NPCs", 
-            "Bosses", 
-            "Items", 
-            "Enemies"
+            'NPCs', 
+            'Bosses', 
+            'Items', 
+            'Enemies'
         ]
 
         response = requests.get(WIKI_URL + entity.path)
         soup = bs(response.text, 'html.parser')
 
         contents = {}
-        this_section = ""
+        this_section = ''
         for col in soup.find_all('div', attrs={'class': 'col-sm-4 col-md-3 col-md-push-9'}):
-            # print(f"\nCOL === \n{col}")
+            # print(f'\nCOL === \n{col}')
             for section in col.find_all(['h3', 'a']):
                 if section.name == 'h3':
                     for section_name in target_section_names:
@@ -99,9 +99,9 @@ class Scraper:
                     if this_section != '':
                         contents[this_section].append(link)
         
-        contents_str = ""
+        contents_str = ''
         for key, vals in contents.items():
-            # print(f"KEY===\n{key}\nVAL===\n{vals}\n\n")
+            # print(f'KEY===\n{key}\nVAL===\n{vals}\n\n')
             contents_str += '\n### ' + key + '\n\n'
             for val in vals:
                 this_val = val
@@ -125,7 +125,7 @@ class Scraper:
         path = WIKI_URL + entity.path
         response = requests.get(path)
         if response.status_code == 404:
-            self.log.error(f"404 PAGE NOT FOUND - {path}")
+            self.log.error(f'404 PAGE NOT FOUND - {path}')
             raise SystemExit
         soup = bs(response.text, 'html.parser')
         
@@ -144,7 +144,7 @@ class Scraper:
             image_src = image_tag['src']
 
             image_name = image_src.split('/')[-1]
-            if "discordapp" in image_src:
+            if 'discordapp' in image_src:
                 image_url = image_src
             else:
                 image_url = WIKI_URL + image_src
@@ -152,19 +152,15 @@ class Scraper:
             image_data = None
 
             # Write the associated image, if it doesn't exist
-            try:
-                if not os.path.isfile(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + self.image.name):
-                    image_data = requests.get(image_url).content
-            except AttributeError:
-                pass    # Image doesn't exist
+            if not os.path.isfile(LOCAL_CACHE + LOCAL_VAULT_NAME + LOCAL_ASSETS + image_name):
+                image_data = requests.get(image_url).content
 
             entity.addImage(image_name, image_data)
         except:
-            # Image doesn't exist
-            pass
+            pass    # Image tag doesn't exist
         
         # Throw out all other img tags
-        for img in content_block("img"):
+        for img in content_block('img'):
             img.decompose()
 
         def parseDescription(parent, description):
@@ -191,9 +187,7 @@ class Scraper:
                 for paragraph in paragraphs:
                     # print(f'\n\PARAGRAPH === \n{paragraph}')
                     description = parseDescription(paragraph, description)
-        # print(f'\n\nDESCRIPTION === \n{description}')
         description = description.replace('</em><em>', '').replace('</em><br/><em>', '')
-        # print(f'\n\nDESCRIPTION === \n{description}')
 
         # Drop these sections
         sections_to_drop = [
@@ -223,22 +217,14 @@ class Scraper:
         contents = {}
 
         for col in content_block.find_all('h3', attrs={'class': 'bonfire'}):
-            #print(f'COLUMN: {str(col)}')
             this_section = re.sub(u'\xa0', ' ', str(col))
             contents[this_section] = ''
 
             for section in col.find_next_siblings(['h3', 'ul', 'ol', 'p', 'div']):
-                # print(f'NAME: {str(section.name)}')
-                # print(f'SECTION: {str(section.contents)}')
-                # if section.name in ['div']:
-                #     print(section)
                 if section.name in ['h3'] or 'Click below for a list of all possible Ashes of War that can be applied' in str(section):
                     break
                 else:
-                    # print(f'SECTION: {str(section.contents)}')
                     contents[this_section] += str(section)
-
-        # print(f'FIRST\n\n{contents.keys()}\n')
 
         # Find the key of the Drops header
         header_key = ''
@@ -250,12 +236,10 @@ class Scraper:
             table = bs(contents[header_key], 'html.parser') # Re-Soupify
             contents[header_key] = ''   # Clear the value
             for row in table.find_all('tr')[1:]:
-                # print(f'ROW ===\n{row}')
                 for item in row.find('a'):
                     link = item.string
                     link = re.sub(r'(.+)', r'%BULLET% [[\1|\1]]\n', link)
                     contents[header_key] += link
-                    # print(f'LINK ===\n{link}')
 
         # Drop the undesirable sections from contents
         keys_to_drop = []
@@ -268,8 +252,6 @@ class Scraper:
         for key in keys_to_drop:
             del contents[key]
         
-        # print(f'SECOND\n\n{contents}')
-
         headers = {
             r'<h3 class=\"bonfire\">[Ww]here to [Ff]ind[^<]+<\/h3>':            r"## Location\n\n",
             r'<h3 class=\"bonfire\">.+[Ll]ocation in Elden Ring<\/h3>':         r"## Location\n\n",
@@ -301,22 +283,13 @@ class Scraper:
         contents_string = description
         for key, val in contents.items():
             header = key
-            # print(f"BEFORE === {header}")
             for header_regex, remap in headers.items():
-                # print(f"HEADER_REGEX === {header_regex}")
-                # print(f"KEY === {key.lower()}")
                 if re.search(header_regex, key):
-                    # print(f"\n\nMAP ===\nHEADER={header_regex}\nREMAP{remap}\nKEY={key}")
                     header = re.sub(header_regex, remap, key)
-                    # print(f"MAP AFTER ===\nHEADER={header_regex}\nREMAP{remap}\nKEY={key}")
-            # print(f"AFTER === {header}")
+
             contents_string += header + val# + "\n---\n\n"
 
-        contents_string = re.sub(r"\<p\>[\s]+\<\/p\>", r"", contents_string)
-        contents_string = re.sub(r"<br\/>", r"<br>", contents_string)
-
-        # print(f"\nTHIRD ===\n{contents_string}")
-
+        # Assign back to the referenced entity
         entity.content = contents_string
 
 
@@ -341,16 +314,16 @@ class Scraper:
                             path = self.scraper.convertPathToEntityName(path)
                             names.append(path)
         
-            exclusions = {
-                "Caelid", 
-                "Liurnia", 
-                "Dragonbarrow", 
+            exclusions = [
+                'Caelid', 
+                'Liurnia', 
+                'Dragonbarrow', 
                 "Impaler's Catacombs", 
-                "Stormfoot Catacombs", 
+                'Stormfoot Catacombs', 
                 "Sage's Cave", 
-            }
+            ]
 
-            names = list(set(names) - exclusions)
+            names = list(set(names) - set(exclusions))
             names.sort()
 
             names_by_category = {}
@@ -372,28 +345,27 @@ class Scraper:
 
             additions = [
                 "Tanith's Knight", 
-                "Necromancer", 
-                "Skeletons", 
-                "Slug", 
-                "First-Generation Albinauric", 
-                "Second-Generation Albinauric", 
-                "Bloody Finger Okina", 
-                "Lesser Sanguine Noble", 
-                "Giant Skeleton (Spirit)", 
-                "Redmane Knight", 
-                "Large Oracle Envoy", 
-                "Man-Serpent Sorcerer", 
-                "Silver Sphere", 
+                'Necromancer', 
+                'Skeletons', 
+                'Slug', 
+                'First-Generation Albinauric', 
+                'Second-Generation Albinauric', 
+                'Bloody Finger Okina', 
+                'Lesser Sanguine Noble', 
+                'Giant Skeleton (Spirit)', 
+                'Redmane Knight', 
+                'Large Oracle Envoy', 
+                'Man-Serpent Sorcerer', 
+                'Silver Sphere', 
+            ]
+
+            exclusions = [
+                'NPC Invaders', 
+                'Scarlet Rot Zombie', 
             ]
 
             names += additions
-
-            exclusions = {
-                "NPC Invaders", 
-                "Scarlet Rot Zombie", 
-            }
-
-            names = list(set(names) - exclusions)
+            names = list(set(names) - set(exclusions))
             names.sort()
             
             names_by_category = {}
@@ -440,17 +412,17 @@ class Scraper:
                         except:
                             pass    # Fail silently
 
-                # This should probably be done on a subcategory basis
+                # This should probably be done on a per-subcategory basis
                 exclusions = [
                     'Torches', 
                 ]
+
                 names = list(set(names) - set(exclusions))
                 names.sort()
 
                 return names
 
             names_by_category = {}
-
             names_by_category[Category.ITEMS.value] = {}
 
             names_items = names_by_category[Category.ITEMS.value]
@@ -483,18 +455,17 @@ class Scraper:
             names_items[ItemSubcategory.UPGRADE_MATERIALS.value] = []
             names_items[ItemSubcategory.UPGRADE_MATERIALS.value] = getNamesByItemSubCategory(ItemSubcategory.UPGRADE_MATERIALS)
 
-            exclusions = {
-                "/Interactive+map?id=4605&lat=-93.653126&lng=115.069298&zoom=8&code=mapA",
-                "Caria Manor", 
-                "Lesser Kindred of Rot (Pests)", 
-                "Merchants", 
-                "Torches"
-            }
+            exclusions = [
+                'Caria Manor', 
+                'Lesser Kindred of Rot (Pests)', 
+                'Merchants', 
+                'Torches'
+            ]
 
             for key, val in names_by_category.items():
                 if key == Category.ITEMS.value:
                     continue
-                val = list(set(val) - exclusions)
+                val = list(set(val) - set(exclusions))
 
             return names_by_category
 
@@ -523,15 +494,14 @@ class Scraper:
                 'Uld Palace Ruins', 
             ]
 
-            names += additions
-
             exclusions = set([
                 'Torrent (Spirit Steed)', 
                 'Wardead Catacombs', 
                 'Legacy Dungeons', 
             ] + LEGACY_DUNGEONS_LIST)
 
-            names = list(set(names) - exclusions)
+            names += additions
+            names = list(set(names) - set(exclusions))
             names.sort()
 
             names_by_category = {}
@@ -604,9 +574,7 @@ class Scraper:
                 'Two Fingers', 
             ]
 
-            names += additions
-
-            exclusions = {
+            exclusions = [
                 'Isolated Merchants', 
                 'Nomadic Merchants', 
                 'Nomadic Merchant Mohgwyn Palace', 
@@ -618,9 +586,10 @@ class Scraper:
                 'Smithing Master Iji', 
                 'Blacksmith Hewg', 
                 'Miriel Pastor of Vows',   # 2 Miriel links are scraped, 'Miriel, Pastor of Vows' is the good one
-            }
+            ]
 
-            names = list(set(names) - exclusions)
+            names += additions
+            names = list(set(names) - set(exclusions))
             names.sort()
 
             names_by_category = {}
@@ -651,7 +620,6 @@ class Scraper:
             ]
 
             names += additions
-
             names = list(set(names))    # Unique
             names.sort()
               
@@ -714,7 +682,11 @@ class Scraper:
                 path = self.scraper.convertPathToEntityName(path)
                 names.append(path)
 
-            names = list(set(names))    # Unique
+            exclusions = [
+                'Upgrades', 
+            ]
+
+            names = list(set(names) - set(exclusions))
             names.sort()
 
             names_by_category = {}
@@ -726,7 +698,7 @@ class Scraper:
             """
             """
 
-            # Armor Sets
+            # Get Armor Sets
             response = requests.get(PATH_ARMOR)
             soup = bs(response.text, 'html.parser')
             table_body = soup.find('div', attrs={'class': 'col-sm-3', 'style': 'float-left: !Important; height: auto;'})
@@ -740,11 +712,11 @@ class Scraper:
 
             additions = [
                 "Perfumer Traveler's Set", 
-                "Nox Monk Greaves", 
-                "Nox Monk Bracelets", 
-                "Ragged Set", 
+                'Nox Monk Greaves', 
+                'Nox Monk Bracelets', 
+                'Ragged Set', 
                 "Brave's Set", 
-                "Deathbed Set", 
+                'Deathbed Set', 
             ]
 
             armor_sets_names += additions
@@ -780,7 +752,7 @@ class Scraper:
             names_by_category[Category.ARMOR.value][ArmorSubcategory.CHEST.value] = []
             names_by_category[Category.ARMOR.value][ArmorSubcategory.CHEST.value] += getNamesForArmorSubcategory(ArmorSubcategory.CHEST)
             names_by_category[Category.ARMOR.value][ArmorSubcategory.GAUNTLET.value] = []
-            names_by_category[Category.ARMOR.value][ArmorSubcategory.GAUNTLET.value] += getNamesForArmorSubcategory(ArmorSubcategory.GAUNTLET, exclusions=["/Gauntlets"])
+            names_by_category[Category.ARMOR.value][ArmorSubcategory.GAUNTLET.value] += getNamesForArmorSubcategory(ArmorSubcategory.GAUNTLET, exclusions=['/Gauntlets'])
             names_by_category[Category.ARMOR.value][ArmorSubcategory.HELM.value] = []
             names_by_category[Category.ARMOR.value][ArmorSubcategory.HELM.value] += getNamesForArmorSubcategory(ArmorSubcategory.HELM)
             names_by_category[Category.ARMOR.value][ArmorSubcategory.LEG.value] = []
@@ -816,6 +788,7 @@ class Scraper:
             names_by_category = {}
 
             name_function_by_category = {
+                Category.ARMOR.value: self.getNamesForArmor, 
                 Category.BOSSES.value: self.getNamesForBosses, 
                 Category.ENEMIES.value: self.getNamesForCreaturesAndEnemies, 
                 Category.ITEMS.value: self.getNamesForItems, 
@@ -825,15 +798,14 @@ class Scraper:
                 Category.SHIELDS.value: self.getNamesForShields, 
                 Category.SKILLS.value: self.getNamesForSkills, 
                 Category.SPELLS.value: self.getNamesForSpells, 
+                Category.SPIRIT_ASH.value: self.getNamesForSpiritAshes, 
                 Category.TALISMANS.value: self.getNamesForTalismans, 
                 Category.WEAPONS.value: self.getNamesForWeapons, 
-                Category.ARMOR.value: self.getNamesForArmor, 
-                Category.SPIRIT_ASH.value: self.getNamesForSpiritAshes
             }
 
             try:
                 names_by_category = name_function_by_category[category]()
             except KeyError:
-                raise KeyError("Category does not exist")
+                raise KeyError('Category does not exist')
             
             return names_by_category

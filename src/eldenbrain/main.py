@@ -8,7 +8,7 @@ def main():
     eb = EldenBrain() # Optionally provide cached Vault location, otherwise used config
 
     # print(eb.getCategories())
-    print(eb.getNamesByCategory('Spirit Ashes'))
+    # print(eb.getNamesByCategory('Spirit Ashes'))
 
     # eb.create(category='Armor')
     # eb.create(category='Hidden')
@@ -29,16 +29,24 @@ def main():
     # eb.create('Carian Glintstone Staff', 'Weapons')
     # eb.create('Vulgar Militia Saw', 'Weapons')
     # eb.create("Executioner's Greataxe", 'Weapons')
+    # eb.create('Ornamental Straight Sword', 'Weapons')
+    # eb.create('Great Omenkiller Cleaver', 'Weapons')
+    eb.create('Wakizashi', 'Weapons')
 
     # eb.create('Miranda Sprout', 'Creatures and Enemies')
     # eb.create('Celebrant', 'Creatures and Enemies')
     # eb.create('Putrid Corpse', 'Creatures and Enemies')
+    # eb.create('First-Generation Albinauric', 'Creatures and Enemies') # No image, so first image parsed is runes symbol
+    # eb.create('Chariot', 'Creatures and Enemies')
 
     # eb.create('Beast Clergyman', 'Bosses')
     # eb.create("Fia's Champions", 'Bosses')
     # eb.create('Fallingstar Beast', 'Bosses')
     # eb.create('Ulcerated Tree Spirit', 'Bosses')
     # eb.create('Margit, the Fell Omen', 'Bosses')
+    # eb.create("Varre's Bouquet", 'Weapons')
+    # eb.create('Onyx Lord', 'Bosses')
+    # eb.create('Malenia, Blade of Miquella', 'Bosses')
     
 
     # eb.create('Roderika', category='NPCs')
@@ -46,13 +54,18 @@ def main():
     # eb.create('Crumbling Farum Azula', category='Legacy Dungeons')
     # eb.create('Volcano Manor', category='Legacy Dungeons')
 
+    # eb.create('Abandoned Cave', category='Locations')
+
     # eb.create('Arrow', category='Items/Arrows and Bolts')
+
+    # eb.create("Ancient Dragon Apostle's Cookbook (1)", category='Items/Cookbooks')
 
     # eb.create('Purifying Crystal Tear', category='Items/Crystal Tears')
 
     # eb.create('Dragon Cult Prayerbook', category='Items/Key Items')
 
     # eb.create("Adula's Moonblade", category='Spells')
+    # eb.create('Bloodboon', category='Spells')
 
     # eb.create('Godrick Foot Soldier Set', category='Armor/Armor Sets')
     # eb.create('Nox Monk Bracelets', category='Armor/Armor Sets')

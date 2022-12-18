@@ -5,6 +5,11 @@ class Formatter:
     Formats and cleans text, including targeted corrections.
     '''
 
+    def applyPreMarkdownFixes(text):
+        text = re.sub(r'\<p\>[\s]+\<\/p\>', r'', text)
+        text = re.sub(r'<br\/>', r'<br>', text)
+        return text
+
     def applyCharacterFixes(markdown):
         markdown = Formatter.replace_special_characters(markdown)
 
@@ -107,6 +112,7 @@ class Formatter:
         markdown = Formatter.remove_floating_bullets(markdown)
         markdown = Formatter.condense_multiple_spaces(markdown)
         markdown = Formatter.condense_newlines(markdown)
+        markdown = Formatter.remove_empty_notes(markdown)
         
         return markdown
 
@@ -140,7 +146,7 @@ class Formatter:
         """
         [[Margit, The Fell Omen#capital-outskirts|More Info]]
         """
-        text = re.sub(r'\[\[[^\|]+\|[Mm]ore [Ii]nfo\]\]', r'', text)
+        text = re.sub(r'\[\[[^\|]+\|[Mm]ore [Ii]nfo *\]\]', r'', text)
         return text
 
     def remove_map_links(text):
@@ -156,11 +162,13 @@ class Formatter:
         """
         text = re.sub(r' *See it on the +\.', r'', text)
         return text
+
     def suppress_patch_notes(text):
         """
         * Updated to patch **1.07**. See [[Patch Notes|Patch Notes]] for details.
         """
         text = re.sub(r'.*[Uu]pdated to [Pp]atch (\*\*)*1\.07(\*\*)*.*', r'', text)
+        text = re.sub(r'.*[Pp]atch (\*\*)*1\.08(\*\*)*.*', r'', text)
         return text
 
     def remove_floating_bullets(text):
@@ -169,6 +177,10 @@ class Formatter:
 
     def condense_multiple_spaces(text):
         text = re.sub(r' {2,}', r' ', text)
+        return text
+
+    def remove_empty_notes(text):
+        text = re.sub(r'\n## Notes\n\n$', r'', text)
         return text
 
     def condense_newlines(text):
@@ -207,7 +219,7 @@ class Formatter:
         return re.sub(r' +', r' ', text)
 
     def remove_other_notes_bullet(text):
-        text = re.sub(r'.*[Nn]otes (&|and) (player )*[Tt]ips.*', r'', text)
+        text = re.sub(r'.*[Nn]otes (&|and) (player )*([Tt]ips|[Tt]rivia).*', r'', text)
         return text
 
     def remove_hemorrhage_links(text):
@@ -311,7 +323,7 @@ class Formatter:
         return re.sub(r'\[\[Sellia\|(.+)\]\]', r'[[Sellia, Town of Sorcery|\1]]', text)
     
     def unify_astel(text):
-        return re.sub(r'\[\[Astel Naturalborn of the Void\|(.+)\]\]', r'[[Astel, Naturalborn of the Void|Flame, Grant Me Strength]]', text)
+        return re.sub(r'\[\[Astel Naturalborn of the Void\|(.+)\]\]', r'[[Astel, Naturalborn of the Void|\1]]', text)
 
     def unify_flame_spells(text):
         text = re.sub(r'\[\[Flame,* Grant [Mm]e Strength\|(.+)\]\]', r'[[Flame, Grant Me Strength|Flame, Grant Me Strength]]', text)
@@ -526,12 +538,16 @@ class Formatter:
             correction = re.sub(r' \[\[Fallingstar Beast#[^\]]+\]\]', r'', text)
         elif name == 'Fia':
             correction = re.sub(r'\[Sword Saint Guide\]\(https:\/\/youtu\.be/iJn4mSsa1iM \'Elden Ring Builds#blackflamebushido\'\)', r'', text)
+        elif name == 'Great Omenkiller Cleaver':
+            correction = re.sub(r' \, \.', r'', text)
         elif name == 'Ivory-Draped Tabard':
             correction = re.sub(r'\[Prayer Room\]\(\/Interactive\+Map[^\)]+\)', r'Prayer Room', text)
         elif name == 'Kaiden Set':
             correction = re.sub(r'\[camp\]\(camp\)', r'camp', text)
         elif name in ['Land Octopus', 'Giant Land Octopus']:
             correction = re.sub(r'\[Temple Quarter\]\(\/Interactive[^\)]+\)', r'Temple Quarter', text)
+        elif name == 'Malenia, Blade of Miquella':
+            correction = re.sub(r'See .*location .*', r'', text)
         elif name == 'Margit, the Fell Omen':
             correction = re.sub(r'\[\[Map Link.*', r'', text)
         elif name == 'Mausoleum Soldier Ashes':
@@ -560,6 +576,8 @@ class Formatter:
         elif name == 'Vulgar Militia Saw':
             correction = re.sub(r'	 \[\[file\/.*', r'', text)
             correction = Formatter.condense_newlines(correction)
+        elif name == 'Wakizashi':
+            correction = re.sub(r'\n### \n\n', r'', text)
         elif name == 'Zweihander':
             correction = re.sub(r'ä', r'a', text)
         elif name == 'Torch':
