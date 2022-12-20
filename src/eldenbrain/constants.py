@@ -61,5 +61,13 @@ PATH_SITES_OF_GRACE         = WIKI_URL + '/Sites of Grace'
 HIDDEN_TAG = '#Hidden'
 
 ## Data
-LEGACY_DUNGEONS_LIST = cfg.legacy_dungeons
+LEGACY_DUNGEONS_LIST = [#cfg.legacy_dungeons
+    'Crumbling Farum Azula', 
+    'Elphael, Brace of the Haligtree', 
+    'Leyndell Royal Capital (Legacy Dungeon)', # "Leyndell, Royal Capital (Legacy Dungeon)" leads to a 404, page needs to be renamed at the wiki level
+    "Miquella's Haligtree",
+    'Raya Lucaria Academy', 
+    'Stormveil Castle', 
+    'Volcano Manor', 
+]
 HIDDEN_LIST = cfg.hidden
