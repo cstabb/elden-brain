@@ -22,7 +22,7 @@ def main():
     # eb.create(category='Talismans')
     # eb.create(category='Weapons')
 
-    # eb.create()
+    eb.create()
 
     # eb.create('Dagger', 'Weapons')
     # eb.create('Frenzied Flame Seal', 'Weapons')
@@ -31,13 +31,20 @@ def main():
     # eb.create("Executioner's Greataxe", 'Weapons')
     # eb.create('Ornamental Straight Sword', 'Weapons')
     # eb.create('Great Omenkiller Cleaver', 'Weapons')
-    eb.create('Wakizashi', 'Weapons')
+    # eb.create('Wakizashi', 'Weapons')
+    # eb.create('Crystal Staff', 'Weapons')
 
+    # eb.create('Deer', 'Creatures and Enemies')
+    # eb.create('Glintstone Miner', 'Creatures and Enemies')
+    # eb.create('Godrick Knight', 'Creatures and Enemies')
     # eb.create('Miranda Sprout', 'Creatures and Enemies')
     # eb.create('Celebrant', 'Creatures and Enemies')
     # eb.create('Putrid Corpse', 'Creatures and Enemies')
     # eb.create('First-Generation Albinauric', 'Creatures and Enemies') # No image, so first image parsed is runes symbol
+    # eb.create('Albinauric', 'Creatures and Enemies')
     # eb.create('Chariot', 'Creatures and Enemies')
+    # eb.create('Anastasia, Tarnished-Eater', 'Creatures and Enemies')
+    # eb.create('Ancestral Follower Shaman', 'Creatures and Enemies')
 
     # eb.create('Beast Clergyman', 'Bosses')
     # eb.create("Fia's Champions", 'Bosses')
@@ -47,6 +54,7 @@ def main():
     # eb.create("Varre's Bouquet", 'Weapons')
     # eb.create('Onyx Lord', 'Bosses')
     # eb.create('Malenia, Blade of Miquella', 'Bosses')
+    # eb.create('Mad Pumpkin Head', 'Bosses')
     
 
     # eb.create('Roderika', category='NPCs')
@@ -63,9 +71,14 @@ def main():
     # eb.create('Purifying Crystal Tear', category='Items/Crystal Tears')
 
     # eb.create('Dragon Cult Prayerbook', category='Items/Key Items')
+    # eb.create('Celestial Dew', category='Items/Key Items')
+    # eb.create('Fingerprint Grape', category='Items/Key Items')
+    # eb.create('Map (Altus Plateau)', category='Items/Key Items')
+    # eb.create('Stonesword Key', category='Items/Key Items')
 
     # eb.create("Adula's Moonblade", category='Spells')
     # eb.create('Bloodboon', category='Spells')
+    # eb.create('Barrier of Gold', category='Spells')
 
     # eb.create('Godrick Foot Soldier Set', category='Armor/Armor Sets')
     # eb.create('Nox Monk Bracelets', category='Armor/Armor Sets')

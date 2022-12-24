@@ -104,7 +104,7 @@ class Formatter:
         ## Mostly optional, but annoying, fluff
         markdown = Formatter.suppress_patch_notes(markdown)
         markdown = Formatter.remove_category_links_table(markdown)
-        markdown = Formatter.fix_drop_links_inside_tables(markdown)
+        markdown = Formatter.fix_links_inside_tables(markdown)
         markdown = Formatter.add_headers_to_tables(markdown)
         markdown = Formatter.remove_elden_ring_links(markdown)
 
@@ -167,7 +167,9 @@ class Formatter:
         """
         * Updated to patch **1.07**. See [[Patch Notes|Patch Notes]] for details.
         """
-        text = re.sub(r'.*[Uu]pdated to [Pp]atch (\*\*)*1\.07(\*\*)*.*', r'', text)
+        text = re.sub(r'.*[Pp]atch (\*\*)*1\.04(\*\*)*.*', r'', text)
+        text = re.sub(r'.*[Pp]atch (\*\*)*1\.041(\*\*)*.*', r'', text)
+        text = re.sub(r'.*[Pp]atch (\*\*)*1\.07(\*\*)*.*', r'', text)
         text = re.sub(r'.*[Pp]atch (\*\*)*1\.08(\*\*)*.*', r'', text)
         return text
 
@@ -219,7 +221,7 @@ class Formatter:
         return re.sub(r' +', r' ', text)
 
     def remove_other_notes_bullet(text):
-        text = re.sub(r'.*[Nn]otes (&|and) (player )*([Tt]ips|[Tt]rivia).*', r'', text)
+        text = re.sub(r'.*[Nn]otes (&|and) ([Pp]layer )*([Tt]ips|[Tt]rivia).*', r'', text)
         return text
 
     def remove_hemorrhage_links(text):
@@ -277,8 +279,8 @@ class Formatter:
     def fix_accented_e(text):
         return re.sub(r'%C3%A9', r'e', text)
 
-    def fix_drop_links_inside_tables(text):
-        text = re.sub(r'(\| \[\[[^\|]+)(\|)', r'\1\\|', text)
+    def fix_links_inside_tables(text):
+        text = re.sub(r'(\[\[[^\|]+)(\|)([^\|]+\|)', r'\1\\|\3', text)
         text = re.sub(r'(Defeat .+)(\|)(.+\]\] \|)', r'\1\\|\3', text)
         text = re.sub(r'(At the end of .+)(\|)(.+\]\].+ \|)', r'\1\\|\3', text)
         return text
@@ -511,6 +513,10 @@ class Formatter:
             correction = re.sub(r'Below shows where.*', r'', correction)
             correction = re.sub(r"Alabaster Lords' Pull", r"Alabaster Lord's Pull", correction)
             correction = Formatter.condense_newlines(correction)
+        elif name == 'Anastasia, Tarnished-Eater':
+            correction = re.sub(r'\[\[Sacred Scorpion Charm(\|)Sacred Scorpion Charm\]\]', r'[[Sacred Scorpion Charm\|Sacred Scorpion Charm]]', correction)
+            correction = re.sub(r'\[\[Butchering Knife(\|)Butchering Knife\]\]', r'[[Butchering Knife\|Butchering Knife]]', correction)
+            correction = re.sub(r'\[\[Somber Ancient Dragon Smithing Stone(\|)Somber Ancient Dragon Smithing Stone\]\]', r'[[Somber Ancient Dragon Smithing Stone\|Somber Ancient Dragon Smithing Stone]]', correction)
         elif name == 'Aspects of the Crucible: Horns':
             correction = re.sub(r'\[Ramparts\]\(Ramparts\)', r'Ramparts', text)
         elif name == "Assassin's Crimson Dagger":
@@ -524,8 +530,13 @@ class Formatter:
             correction = Formatter.condense_newlines(correction)
         elif name == 'Bloodstained Dagger':
             correction = re.sub(r'#gsc\.tab=0', r'', text)
+        elif name == 'Celestial Dew':
+            correction = re.sub(r'\[\[Ainsel River\\\|Ainsel River\]\]', r'', correction)
+            correction = re.sub(r'\n\n\n\[\[Ainsel River\|Ainsel River\]\]\n', r'', correction)
         elif name == 'Cipher Pata':
             correction = re.sub(r'\[\[Unblockable Blade Skill\|(.+)\]\]', r'[[Unblockable Blade|\1]]', text)
+        elif name == 'Crystal Staff':
+            correction = re.sub(r'Screenshot.*', r'', text)
         # elif name == 'Cracked Pot':
         #     correction = re.sub(r'vessel', r'bessel', text)
         elif name == 'Cuckoo Greatshield':
@@ -566,6 +577,8 @@ class Formatter:
             correction = re.sub(r'\[Click on the image above to enlarge it.*', r'', text)
         elif name == "St. Trina's Arrow":
             correction = re.sub(r' \[Map Link\]\(.+\'\)', r'', text)
+        elif name =='Stonesword Key':
+            correction = re.sub(r'\* Sold here as shown with the near.*', r'', text)
         elif name == 'Torrent':
             correction = re.sub(r'\[\[Attacking#two\-handing\|two\-hand\]\]', r'two-hand', text)
         elif name == "Troll's Golden Sword":

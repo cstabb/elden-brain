@@ -176,8 +176,7 @@ class Entity:
         if self.category != '':
             for category in category.split('/'):
                 self.addTag(category)
-            # self.tags += [re.sub(r' +', r'', category) for category in category.split('/')]
-
+        
         # Hide 'About' items
         if re.search(r'^About ', self.name):
             self.addTag('Hidden')
@@ -246,7 +245,6 @@ class Entity:
 
         tags_md_string = ''
         if self.tags:
-            print(self.tags)
             tags = ['#'+tag for tag in self.tags]
             tags_md_string = ' '.join(tags) + f'\n\n'
 
