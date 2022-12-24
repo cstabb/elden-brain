@@ -1,15 +1,10 @@
-/target
 /assets
-/cache/*
-/cache_full/*
-/cache_temp/*
-/.vscode
+/cache
 /env
 /tests
-/tests/*
-/.VSCodeCounter
 /src/__pycache__
+/.vscode
+/.VSCodeCounter
 
 elden_bring.code-workspace
-config.int
-notes.txt
+config.ini
