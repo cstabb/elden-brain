@@ -1,7 +1,7 @@
 import sys
 import click
 
-yesses = ['y', 'Y', 'yes', 'Yes']
+yesses = ['', 'y', 'Y', 'yes', 'Yes']
 nos = ['n', 'N', 'no', 'No']
 def validated(text):
     return text in yesses or text in nos
