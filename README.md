@@ -1,7 +1,7 @@
 
 # Elden Brain
 
-Elden Brain is a tool for generating an [[Obsidian Vault|https://obsidian.md/]] containing pages for (almost) everything in Elden Ring. Obsidian is not only a great note-taking application, it also features a graph view that visualizes connected pages, allowing for unique insights into Elden Ring's elaborate interconnected world.
+Elden Brain is a tool for generating an [Obsidian Vault](https://obsidian.md/) containing pages for (almost) everything in Elden Ring. Obsidian is not only a great note-taking application, it also features a graph view that visualizes connected pages, allowing for unique insights into Elden Ring's elaborate interconnected world.
 
 This tool is intended give any lore hunter a starting part in their investigations and theories, or simply for players to use as a local reference as they play the game.
 
