@@ -1,4 +1,5 @@
 import configparser
+from pathlib import Path
 
 class ConfigReader:
 
@@ -14,7 +15,8 @@ class ConfigReader:
         ## Set up config
         self.config = configparser.ConfigParser(allow_no_value=True)
         self.config.optionxform = str
-        read_result = self.config.read('../config.ini')
+        path = Path(__file__).parent / "../config.ini"
+        read_result = self.config.read(path)
 
         # Assign options from config
         self.wiki_url = self.config['Main']['wiki_url']

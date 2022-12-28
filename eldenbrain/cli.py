@@ -1,4 +1,4 @@
-from eldenbrain.elden_brain import EldenBrain
+from .elden_brain import EldenBrain
 
 import click
 
@@ -62,10 +62,10 @@ def create(ctx, name, category, all):
 
     click.echo('Options must be provided. Use --all to create all pages.')
 
-def main():
+def run():
     cli.add_command(list)
     cli.add_command(create)
     cli()
 
 if __name__ == '__main__':
-    main()
+    run()
