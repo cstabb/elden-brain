@@ -5,28 +5,27 @@ Elden Brain is a tool for generating an [Obsidian Vault](https://obsidian.md/) c
 
 This tool is intended give any lore hunter a starting part in their investigations and theories, or simply for players to use as a local reference as they play the game.
 
-
 ## Installation
 
 Install using the included Wheel
 
 ```bash
-  pip install .whl
+  pip install eldenbrain-<version>-py3-none-any.whl
 ```
 
-Alternatively, download this repository (either through Github or the included tarball in dist/) and install using Poetry
+Alternatively, download this repository and install using Poetry
 
 ```bash
 poetry install
 ```
 
 Following installing, open the included **config.ini** file and set the wiki_url variable to your favorite Elden Ring wiki.
+
 ## Features
 
 - Automatic Obsidian Vault generation
 - CLI included, or can be used as a Python library
 - Extensive formatting options via configuration file
-
 
 ## Usage/Examples
 

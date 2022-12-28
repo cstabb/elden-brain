@@ -15,7 +15,7 @@ class ConfigReader:
         ## Set up config
         self.config = configparser.ConfigParser(allow_no_value=True)
         self.config.optionxform = str
-        path = Path(__file__).parent / "../config.ini"
+        path = Path(__file__).parent / "config.ini"
         read_result = self.config.read(path)
 
         # Assign options from config
