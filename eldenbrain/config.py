@@ -1,6 +1,20 @@
 import configparser
 from pathlib import Path
 
+CONFIG_FILENAME = 'config.ini'
+class ConfigWriter:
+    
+    def writeOption(section, option, value):
+        config = configparser.ConfigParser(allow_no_value=True)
+        config.optionxform = str
+        path = Path(__file__).parent / CONFIG_FILENAME
+        read_result = config.read(path)
+
+        config[section][option] = value
+
+        with open(path, 'w') as configfile:    # save
+            config.write(configfile)
+
 class ConfigReader:
 
     def toBool(self, text):
@@ -15,7 +29,7 @@ class ConfigReader:
         ## Set up config
         self.config = configparser.ConfigParser(allow_no_value=True)
         self.config.optionxform = str
-        path = Path(__file__).parent / "config.ini"
+        path = Path(__file__).parent / CONFIG_FILENAME
         read_result = self.config.read(path)
 
         # Assign options from config

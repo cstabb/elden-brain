@@ -1,6 +1,28 @@
-from .elden_brain import EldenBrain
-
+import sys
 import click
+
+yesses = ['y', 'Y', 'yes', 'Yes']
+nos = ['n', 'N', 'no', 'No']
+def validated(text):
+    return text in yesses or text in nos
+
+try:
+    from .elden_brain import EldenBrain
+except ValueError:
+    answer = input('The wiki URL has not been set. Would you like to set it now? (This can also be set manually in config.ini) (y/n): ')
+    if validated(answer):
+        if answer in nos:
+            click.echo('Wiki URL not set, closing...')
+            sys.exit(0)
+        elif answer in yesses:
+            set_wiki_url = input('Enter the wiki URL: ')
+            from .config import ConfigWriter
+            ConfigWriter.writeOption('Main', 'wiki_url', set_wiki_url)
+            click.echo('Wiki URL set!')
+            from .elden_brain import EldenBrain
+    else:
+        click.echo('Invalid input, aborting...')
+        sys.exit(0)
 
 @click.group()
 @click.pass_context
@@ -63,6 +85,7 @@ def create(ctx, name, category, all):
     click.echo('Options must be provided. Use --all to create all pages.')
 
 def run():
+
     cli.add_command(list)
     cli.add_command(create)
     cli()
