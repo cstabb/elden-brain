@@ -1,0 +1,114 @@
+{
+  "collapse-filter": false,
+  "search": "-(tag:Hidden OR tag:Spells OR tag:Skills)",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "tag:Weapons",
+      "color": {
+        "a": 1,
+        "rgb": 11484220
+      }
+    },
+    {
+      "query": "tag:Shields",
+      "color": {
+        "a": 1,
+        "rgb": 11484220
+      }
+    },
+    {
+      "query": "tag:Skills",
+      "color": {
+        "a": 1,
+        "rgb": 3422355
+      }
+    },
+    {
+      "query": "tag:Spells",
+      "color": {
+        "a": 1,
+        "rgb": 3058354
+      }
+    },
+    {
+      "query": "tag:Locations",
+      "color": {
+        "a": 1,
+        "rgb": 2906413
+      }
+    },
+    {
+      "query": "tag:LegacyDungeons",
+      "color": {
+        "a": 1,
+        "rgb": 3129725
+      }
+    },
+    {
+      "query": "tag:NPCs",
+      "color": {
+        "a": 1,
+        "rgb": 13751360
+      }
+    },
+    {
+      "query": "tag:Items",
+      "color": {
+        "a": 1,
+        "rgb": 13619151
+      }
+    },
+    {
+      "query": "tag:CreaturesandEnemies",
+      "color": {
+        "a": 1,
+        "rgb": 11083375
+      }
+    },
+    {
+      "query": "tag:Bosses",
+      "color": {
+        "a": 1,
+        "rgb": 13600499
+      }
+    },
+    {
+      "query": "tag:Armor",
+      "color": {
+        "a": 1,
+        "rgb": 8004644
+      }
+    },
+    {
+      "query": "tag:Talismans",
+      "color": {
+        "a": 1,
+        "rgb": 1385322
+      }
+    },
+    {
+      "query": "tag:SpiritAshes",
+      "color": {
+        "a": 1,
+        "rgb": 4999652
+      }
+    }
+  ],
+  "collapse-display": false,
+  "showArrow": false,
+  "textFadeMultiplier": -0.8,
+  "nodeSizeMultiplier": 1.61083333333333,
+  "lineSizeMultiplier": 0.446764322916667,
+  "collapse-forces": false,
+  "centerStrength": 0.608333333333333,
+  "repelStrength": 16.4153645833333,
+  "linkStrength": 1,
+  "linkDistance": 101,
+  "scale": 0.09848280266864501,
+  "close": false
+}
