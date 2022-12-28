@@ -14,10 +14,12 @@ class ConfigReader:
         ## Set up config
         self.config = configparser.ConfigParser(allow_no_value=True)
         self.config.optionxform = str
-        self.config.read('config.ini')
+        read_result = self.config.read('../config.ini')
 
         # Assign options from config
         self.wiki_url = self.config['Main']['wiki_url']
+        if self.wiki_url == '':
+            raise ValueError('The wiki URL has not been set, update config.ini with the appropriate value')
         self.cache_location = self.config['Local Directories']['cache_location'] + '/'
         self.vault_name = self.config['Local Directories']['vault_name'] + '/'
 

@@ -3,8 +3,8 @@ import os
 import requests
 from bs4 import BeautifulSoup as bs
 
-from constants import *
-from objects import *
+from .constants import *
+from .objects import *
 
 
 class Scraper:

@@ -1,12 +1,12 @@
-/assets
-/cache
-/env
-/tests
-/src/__pycache__
+/.pytest_cache
 /.vscode
 /.VSCodeCounter
+/assets
+/cache
+/tests
+/old
+/eldenbrain/__pycache__
 
-elden_bring.code-workspace
 config.ini
+elden_bring.code-workspace
 pyproject.toml
-poetry.lock

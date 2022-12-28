@@ -2,7 +2,7 @@ import os
 import re
 from enum import Enum
 
-from constants import *
+from .constants import *
 
 
 class Category(Enum):

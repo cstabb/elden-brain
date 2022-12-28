@@ -1,4 +1,4 @@
-from config import ConfigReader
+from .config import ConfigReader
 
 cfg = ConfigReader()
 

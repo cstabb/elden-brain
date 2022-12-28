@@ -6,10 +6,10 @@ from enum import Enum
 from markdownify import markdownify as md
 import flatdict
 
-from constants import *
-from objects import *
-from scraper import Scraper
-from text_handling import Formatter
+from .constants import *
+from .objects import *
+from .scraper import Scraper
+from .text_handling import Formatter
 
 
 class EldenBrain:
