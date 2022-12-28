@@ -19,7 +19,7 @@ Alternatively, download this repository and install using Poetry
 poetry install
 ```
 
-Following installing, open the included **config.ini** file and set the wiki_url variable to your favorite Elden Ring wiki.
+Following installation, run the 'eldenbrain' command and follow the prompts to get started.
 
 ## Features
 
@@ -46,7 +46,7 @@ To create all pages within a category, type
 ```bash
 eldenbrain create --category "Creatures and Enemies"
 ```
-Or create a single page if you know the name (Note: A category is not required in this case, but omitting one will place it in the Vault's top level)
+Or create a single page if you know the name (Note: A category is not required in this case, but omitting one will create the page at the Vault's top level)
 ```bash
 eldenbrain create Troll -c "Creatures and Enemies"
 ```
@@ -65,6 +65,6 @@ from eldenbrain import EldenBrain as eb
 
 ## Bandwidth considerations
 
-Elden Brain works by scraping information from the web to generate Markdown pages. Please be thoughtful and aware of bandwidth when using this tool—keep your use of create --all to a minimum, test your config.ini changes by creating a single page, etc.
+Elden Brain works by scraping information from the web to generate Markdown pages. Please be thoughtful and considerate of bandwidth when using this tool—keep your use of create --all to a minimum, test your config.ini changes by creating a single page, etc.
 
 By default, downloaded assets (namely images) are *not* re-downloaded when a local page is recreated.
