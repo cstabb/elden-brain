@@ -14,7 +14,7 @@ Install using the included Wheel
   pip install .whl
 ```
 
-Alternatively, download this repository and install using Poetry
+Alternatively, download this repository (either through Github or the included tarball in dist/) and install using Poetry
 
 ```bash
 poetry install
