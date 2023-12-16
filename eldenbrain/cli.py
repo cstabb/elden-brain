@@ -1,20 +1,20 @@
 import sys
 import click
 
-yesses = ['', 'y', 'Y', 'yes', 'Yes']
-nos = ['n', 'N', 'no', 'No']
-def validated(text):
-    return text in yesses or text in nos
-
 try:
     from .elden_brain import EldenBrain
-except ValueError:
-    answer = input('The wiki URL has not been set. Would you like to set it now? (This can also be set manually in config.ini) (y/n): ')
-    if validated(answer):
-        if answer in nos:
-            click.echo('Wiki URL not set, closing...')
+except ImportError:
+    answer = input('The wiki URL has not been set. Would you like to set it now? (y/n): ')
+    answer = answer.lower()
+
+    yes = ['', 'y', 'yes']
+    no = ['n', 'no']
+    
+    if answer in yes or answer in no:
+        if answer in no:
+            click.echo('Wiki URL not set, exiting...')
             sys.exit(0)
-        elif answer in yesses:
+        elif answer in yes:
             set_wiki_url = input('Enter the wiki URL: ')
             from .config import ConfigWriter
             ConfigWriter.writeOption('Main', 'wiki_url', set_wiki_url)
